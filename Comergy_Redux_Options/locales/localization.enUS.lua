@@ -1,26 +1,27 @@
 if (true) then
     COMERGY_GENERAL = "General"
     COMERGY_BAR = "Bars and Text"
-    COMERGY_ENERGY = "Energy"
-    COMERGY_FOCUS = "Focus"
-    COMERGY_RAGE = "Rage"
-    COMERGY_RUNIC_POWER = "Runic Power"
-    COMERGY_MANA = "Mana"
-    COMERGY_CHI = "Chi"
-    COMERGY_COMBO = "Combo"
-    COMERGY_HOLY_POWER = "Holy Power"
-    COMERGY_SHADOW_ORB = "Shadow Orb"
-    COMERGY_SOUL_SHARD = "Soul Shard"
-    COMERGY_DEMONIC_FURY = "Demonic Fury"
-    COMERGY_ROGUE = "Rogue"
-    COMERGY_RUNE = "Rune"
+    COMERGY_ENERGY = ENERGY
+    COMERGY_FOCUS = FOCUS
+    COMERGY_RAGE = RAGE
+    COMERGY_RUNIC_POWER = RUNIC_POWER
+    COMERGY_MANA = MANA
+    COMERGY_CHI = CHI
+    COMERGY_COMBO = COMBO_POINTS
+    COMERGY_HOLY_POWER = HOLY_POWER
+    COMERGY_INSANITY = INSANITY
+    COMERGY_SOUL_SHARD = SOUL_SHARDS
+    COMERGY_RUNE = RUNES
+
+    COMERGY_ROGUE = GetClassInfo(4)
+
     COMERGY_BLOOD = "Blood"
     COMERGY_FROST = "Frost"
     COMERGY_UNHOLY = "Unholy"
     COMERGY_DEATH = "Death"
 
-    COMERGY_LOW = "Low"
-    COMERGY_HIGH = "High"
+    COMERGY_LOW = LOW
+    COMERGY_HIGH = HIGH
     COMERGY_LEFT = "Left"
     COMERGY_RIGHT = "Right"
     
@@ -45,7 +46,6 @@ if (true) then
         ["FrameStrata"] = "Frame strata",
         ["PlayerHeight"] = "Player's health bar height",
         ["TargetHeight"] = "Target's health bar height",
-        ["FuryHeight"] = "Fury bar thickness",
     }
 
     COMERGY_SLIDERINFO_ENERGY = {
@@ -86,7 +86,7 @@ if (true) then
         ["ChiDiff"] = "Fancy holy power bars",
     }
 
-    COMERGY_SLIDERINFO_SHADOW_ORB = {
+    COMERGY_SLIDERINFO_INSANITY = {
         ["ChiHeight"] = "Orb bar thickness",
         ["ChiBGAlpha"] = "Orb BG alpha",
         ["ChiDiff"] = "Fancy orb bars",
@@ -116,10 +116,6 @@ if (true) then
         ["EnergyFlash"] = "Flash energy bars",
         ["Anticipation"] = "Recolor bars",
         ["AnticipationCombo"] = "Only recolor active combo points",
-        ["FuryText"] = "Fury text",
-        ["UnifiedFuryColor"] = "Unified fury color",
-        ["GradientFuryColor"] = "Gradient fury color",
-        ["FuryBGFlash"] = "Flash BG when \"Not enough fury\"",
     }
 
     COMERGY_CHECKOPTINFO_ENERGY = {
@@ -170,7 +166,7 @@ if (true) then
         ["ChiFlash"] = "Flash chi points when full chi",
     }
 
-    COMERGY_CHECKOPTINFO_SHADOW_ORB = {
+    COMERGY_CHECKOPTINFO_INSANITY = {
         ["ChiText"] = "Shadow orb text",
         ["UnifiedChiColor"] = "Unified shadow orb color",
         ["ChiFlash"] = "Flash shadow orbs when full shadow orbs",
@@ -193,7 +189,6 @@ if (true) then
         ["TextColor"] = "Text color",
         ["BGColorAlpha"] = "BG color",
         ["RuneBGColorAlpha"] = "Rune BG",
-        ["FuryBGColorAlpha"] = "Fury BG",
     }
 
     COMERGY_COLORPICKERINFO_ENERGY = {

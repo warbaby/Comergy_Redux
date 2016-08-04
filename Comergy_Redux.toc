@@ -7,6 +7,8 @@
 ## SavedVariablesPerCharacter: Comergy_Config
 
 locales\localization.enUS.lua
+locales\localization.zhCN.lua
+locales\localization.zhTW.lua
 
 comergy.lua
 comergy_utils.lua

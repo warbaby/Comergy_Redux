@@ -11,15 +11,19 @@
 
                 <Scripts>
                     <OnMouseDown>
-                        if ((button == "LeftButton") or (button == "RightButton")) then
+                        if (button == "LeftButton") then
                             self:GetParent():StartMoving()
                         end
                     </OnMouseDown>
 
                     <OnMouseUp>
-                        self:GetParent():StopMovingOrSizing()
-                        ComergySavePosition()
-                        UpdateOptions()
+                        if (button == "RightButton") then
+                            if not InCombatLockdown() or (IsControlKeyDown() and IsAltKeyDown()) then SlashCmdList["COMERGY"]() end
+                        else
+                            self:GetParent():StopMovingOrSizing()
+                            ComergySavePosition()
+                            UpdateOptions()
+                        end
                     </OnMouseUp>
                 </Scripts>
 
@@ -106,21 +110,6 @@
             </StatusBar>
 
             <StatusBar name="ComergyChiBar8" inherits="StatusBar" DrawLayer="ARTWORK">
-            </StatusBar>
-
-            <StatusBar name="ComergyFuryBar1" inherits="StatusBar" DrawLayer="ARTWORK" hidden="true">
-            </StatusBar>
-
-            <StatusBar name="ComergyFuryBar2" inherits="StatusBar" DrawLayer="ARTWORK" hidden="true">
-            </StatusBar>
-
-            <StatusBar name="ComergyFuryBar3" inherits="StatusBar" DrawLayer="ARTWORK" hidden="true">
-            </StatusBar>
-
-            <StatusBar name="ComergyFuryBar4" inherits="StatusBar" DrawLayer="ARTWORK" hidden="true">
-            </StatusBar>
-
-            <StatusBar name="ComergyFuryBar5" inherits="StatusBar" DrawLayer="ARTWORK" hidden="true">
             </StatusBar>
 
             <StatusBar name="ComergyPlayerHealthBar" inherits="StatusBar" DrawLayer="ARTWORK">

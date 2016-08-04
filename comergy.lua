@@ -49,27 +49,27 @@ local DURATIONS = {
     BAR_CHANGE      = { 0.1, 0.1 },
 }
 
--- class constants
-local DEATHKNIGHT   = 1
-local DRUID         = 2
+-- class constants GetClassInfo()
+local WARRIOR       = 1
+local PALADIN       = 2
 local HUNTER        = 3
-local MAGE          = 4
-local MONK          = 5
-local PALADIN       = 6
-local PRIEST        = 7
-local ROGUE         = 8
-local SHAMAN        = 9
-local WARLOCK       = 10
-local WARRIOR       = 11
+local ROGUE         = 4
+local PRIEST        = 5
+local DEATHKNIGHT   = 6
+local SHAMAN        = 7
+local MAGE          = 8
+local WARLOCK       = 9
+local MONK          = 10
+local DRUID         = 11
+local DEMONHUNTER   = 12
+
 
 local ENERGY_SUBBAR_NUM = 5
-
--- local SPELL_POWER_COMBO = 4
 
 -- spell ids
 local SPELL_ID_PROWL = 5215
 local SPELL_NAME_PROWL
-local SPELL_ID_SHADOW_DANCE = 51713
+local SPELL_ID_SHADOW_DANCE = 185313
 local SPELL_NAME_SHADOW_DANCE
 local SPELL_ID_VENDETTA = 79140
 local SPELL_NAME_VENDETTA
@@ -83,15 +83,13 @@ local status = {
 
     energyEnabled,
     manaEnabled,
-    comboEnabled,
     chiEnabled,
-    furyEnabled,
 
     curPowerType,
     curChiType,
     curEnergyHeight,
     curChiHeight,
-    chiSymbol = "C",
+    chiSymbol = "",
 
     playerGUID,
 
@@ -109,11 +107,6 @@ local status = {
     curMana,
     manaFlashing,
     manaBGFlashing,
-
-    maxFury,
-    curFury,
-    furyFlashing   = 0,
-    furyBGFlashing = 0,
 
     curChi,
     chiFlashing,
@@ -136,19 +129,16 @@ local energyBars = {}
 local numEnergyBars
 local chiBars = {}
 local numChiBars
-local furyBars = {}
-local numFuryBars
 local playerBar, targetBar
 
 local orderedEnergyThresholds = {}
 local orderedManaThresholds = {}
-local orderedFuryThresholds = {}
 local lastPeriodicUpdate
 
 -- private methods
-local MainFrameShow, MainFrameToggle, ResizeEnergyBars, ResizeChiBars, ResizeFuryBars
-local EnergyChanged, ManaChanged, FrameResize, ChiChanged, RuneChanged, Initialize, ReadStatus, PopulateDefaultSettings, PopulateSettingsFrom
-local EventHandlers, TextChanged, TextStyleChanged, BGResize, OnPeriodicUpdate, OnFrameUpdate, OrderThresholds, ChiStatus, FuryChanged
+local MainFrameShow, MainFrameToggle, ResizeEnergyBars, ResizeChiBars
+local EnergyChanged, ManaChanged, FrameResize, ChiChanged, RuneChanged, Initialize, ReadStatus, PopulateDefaultSettings
+local EventHandlers, TextChanged, TextStyleChanged, BGResize, OnPeriodicUpdate, OnFrameUpdate, OrderThresholds, ChiStatus
 local ToggleOptions, PlayerHealthChanged, TargetHealthChanged, PowerTypeChanged, SetMaxChi, ColorRune, ConvertRune
 
 function MainFrameShow(show)
@@ -249,7 +239,7 @@ function ResizeEnergyBars()
     end
     if (Comergy_Settings.FlipOrientation) then
         if (Comergy_Settings.VerticalBars) then
-            anchorPointV, relAnchorPointV = relAnchorPointV, anchorPointV               
+            anchorPointV, relAnchorPointV = relAnchorPointV, anchorPointV
         else
             anchorPointH, relAnchorPointH = relAnchorPointH, anchorPointH
         end
@@ -452,7 +442,7 @@ end
 
 --[[    ChiBars. handles chi, combo, holypower, shadow orbs, burning embers, soul shards    ]]--
 function ResizeChiBars()
-    if (not (status.chiEnabled or status.comboEnabled or status.runeEnabled)) then
+    if (not (status.chiEnabled or status.runeEnabled)) then
         for i = 1, 8 do
             chiBars[i]:Hide()
         end
@@ -503,7 +493,7 @@ function ResizeChiBars()
         -- Fix for fancy bars to work with different chi amounts
         right = left + chiLength + (i - (numChiBars / 2 + .5)) * chiLength * Comergy_Settings.ChiDiff
         lastLeft = right + Comergy_Settings.Spacing
-        
+
         -- Fix for changing chi amounts in the same session
         if (i > numChiBars) then
             top = 0
@@ -568,8 +558,6 @@ function ChiChanged()
     local chi
     if (status.chiEnabled) then
         chi = UnitPower(status.curUnit, status.curChiType)
-    elseif (status.comboEnabled) then
-        chi = UnitPower(status.curUnit, SPELL_POWER_COMBO_POINTS)
     else
         return
     end
@@ -611,7 +599,7 @@ function ChiChanged()
             end
         end
     end
-    
+
     if ((chi ~= status.curChi) and (chi ~= 0)) then
         if (Comergy_Settings["SoundChi"..chi]) then
             PlaySoundFile("Interface\\AddOns\\Comergy_Redux\\sound\\combo"..chi..".ogg")
@@ -659,162 +647,6 @@ function RuneChanged()
     MainFrameToggle()
 end
 
-function ResizeFuryBars()
-    local n = 1
-    furyBars[1].min = 0
-    furyBars[1].minColor = Comergy_Settings.FuryColor0
-
-    for i = 1, #(orderedFuryThresholds) do
-        if ((orderedFuryThresholds[i][1] > 0) and (Comergy_Settings["SplitFury"..orderedFuryThresholds[i][2]])) then
-            n = n + 1
-            furyBars[n - 1].max = orderedFuryThresholds[i][1]
-            furyBars[n].min = orderedFuryThresholds[i][1]
-            furyBars[n - 1].maxColor = Comergy_Settings["FuryColor"..orderedFuryThresholds[i][2]]
-            furyBars[n].minColor = Comergy_Settings["FuryColor"..orderedFuryThresholds[i][2]]
-        end
-    end
-
-    furyBars[n].max = status.maxFury
-    furyBars[n].maxColor = Comergy_Settings["FuryColor"..ENERGY_SUBBAR_NUM]
-
-    numFuryBars = n
-
-    local lenPerFury = (Comergy_Settings.Width - Comergy_Settings.Spacing * (n - 1)) / status.maxFury
-    local anchorPointV = "BOTTOM"
-    local relAnchorPointV = "TOP"
-    local anchorPointH = "RIGHT"
-    local relAnchorPointH = "LEFT"
-    local direction
-
-    if (Comergy_Settings.FlipBars) then
-        if (Comergy_Settings.VerticalBars) then
-            anchorPointH, relAnchorPointH = relAnchorPointH, anchorPointH
-        else
-            anchorPointV, relAnchorPointV = relAnchorPointV, anchorPointV
-        end
-    end
-    if (Comergy_Settings.FlipOrientation) then
-        if (Comergy_Settings.VerticalBars) then
-            anchorPointV, relAnchorPointV = relAnchorPointV, anchorPointV               
-        else
-            anchorPointH, relAnchorPointH = relAnchorPointH, anchorPointH
-        end
-        direction = 2
-    else
-        direction = 1
-    end
-
-    if (Comergy_Settings.VerticalBars) then
-        anchorPointV, relAnchorPointV = relAnchorPointV, anchorPointV
-        anchorPointH, relAnchorPointH = relAnchorPointH, anchorPointH
-        direction = direction + 2
-    end
-
-    local left, right, top, bottom
-    for i = 1, n do
-        left = furyBars[i].min * lenPerFury + (i - 1) * Comergy_Settings.Spacing
-        right = furyBars[i].max * lenPerFury + (i - 1) * Comergy_Settings.Spacing
-        top = -status.curFuryHeight
-        bottom = 0
-
-        if (Comergy_Settings.ShowTargetHealthBar) then
-            bottom = bottom - Comergy_Settings.TargetHeight - Comergy_Settings.Spacing
-            top = top + bottom
-        end
-
-        furyBars[i].len = right - left
-
-        if (Comergy_Settings.FlipBars) then
-            top, bottom = -top, -bottom
-        end
-        if (Comergy_Settings.FlipOrientation) then
-            left, right = -left, -right
-        end
-
-        furyBars[i].direction = direction
-        if (ComergyBarTextures[Comergy_Settings.BarTexture][2]) then
-            furyBars[i]:SetStatusBarTexture(ComergyBarTextures[Comergy_Settings.BarTexture][2])
-        else
-            furyBars[i]:SetStatusBarTexture(furyBars[i]:CreateTexture(nil, "ARTWORK"))
-        end
-
-        if (Comergy_Settings.VerticalBars) then
-            left, bottom = bottom, left
-            right, top = top, right
-            furyBars[i]:GetStatusBarTexture():ClearAllPoints()
-            furyBars[i]:GetStatusBarTexture():SetPoint(relAnchorPointV, 0, 0)
-            furyBars[i]:GetStatusBarTexture():SetWidth(Comergy_Settings.FuryHeight)
-        else
-            furyBars[i]:GetStatusBarTexture():ClearAllPoints()
-            furyBars[i]:GetStatusBarTexture():SetPoint(relAnchorPointH, 0, 0)
-            furyBars[i]:GetStatusBarTexture():SetHeight(Comergy_Settings.FuryHeight)
-        end
-
-        furyBars[i]:ClearAllPoints()
-        furyBars[i]:SetPoint(relAnchorPointV .. relAnchorPointH, left, bottom)
-        furyBars[i]:SetPoint(anchorPointV .. anchorPointH, furyBars[i]:GetParent(), relAnchorPointV .. relAnchorPointH, right, top)
-        if ((top - bottom == 0) or (right - left == 0)) then
-            furyBars[i]:Hide()
-        else
-            furyBars[i]:Show()
-        end
-    end
-
-    for i = n + 1, ENERGY_SUBBAR_NUM do
-        furyBars[i]:Hide()
-    end
-end
-
-function FuryChanged(isSmallInc)
-    if (not status.furyEnabled) then
-        return
-    end
-    isSmallInc = isSmallInc or false
-
-    local changeDuration = DURATIONS["BAR_CHANGE"][1]
-    if (isSmallInc) then
-        changeDuration = BAR_SMALL_INC_DURATION
-    end
-
-    for i = 1, numFuryBars do
-        if (furyBars[i].min > status.curFury) then
-            cmg_GradientObject(furyBars[i], 1, INSTANT_DURATION, 0)
-            if (not Comergy_Settings.UnifiedFuryColor) then
-                for j = 1, 3 do
-                    cmg_GradientObject(furyBars[i], j + 1, INSTANT_DURATION, furyBars[i].minColor[j])
-                end
-            end
-        elseif (furyBars[i].max < status.curFury) then
-            cmg_GradientObject(furyBars[i], 1, INSTANT_DURATION, furyBars[i].max - furyBars[i].min)
-            if (not Comergy_Settings.UnifiedFuryColor) then
-                for j = 1, 3 do
-                    cmg_GradientObject(furyBars[i], j + 1, INSTANT_DURATION, furyBars[i].maxColor[j])
-                end
-            end
-        else
-            cmg_GradientObject(furyBars[i], 1, changeDuration, status.curFury - furyBars[i].min)
-            for j = 1, 3 do
-                local color
-                if (Comergy_Settings.GradientFuryColor) then
-                    color = furyBars[i].minColor[j] + (furyBars[i].maxColor[j] - furyBars[i].minColor[j]) / (furyBars[i].max - furyBars[i].min) * (status.curFury - furyBars[i].min)
-                else
-                    color = furyBars[i].maxColor[j]
-                end
-                if (Comergy_Settings.UnifiedFuryColor) then
-                    local k
-                    for k = 1, numFuryBars do
-                        cmg_GradientObject(furyBars[k], j + 1, changeDuration, color)
-                    end
-                else
-                    cmg_GradientObject(furyBars[i], j + 1, changeDuration, color)
-                end
-            end
-        end
-    end
-
-    TextChanged()
-end
-
 function PlayerHealthChanged()
     local healthPerc = status.curPlayerHealth / status.maxPlayerHealth
     cmg_GradientObject(playerBar, 1, DURATIONS["BAR_CHANGE"][1], healthPerc)
@@ -837,16 +669,13 @@ end
 
 function FrameResize()
     local w = Comergy_Settings.Width
-    local h = status.curChiHeight + status.curEnergyHeight + status.curFuryHeight
+    local h = status.curChiHeight + status.curEnergyHeight
     local space = 0
 
     if (status.curChiHeight ~= 0) then
         space = space + 1
     end
     if (status.curEnergyHeight ~= 0) then
-        space = space + 1
-    end
-    if (status.curFuryHeight ~= 0) then
         space = space + 1
     end
     if (Comergy_Settings.ShowPlayerHealthBar) then
@@ -871,7 +700,6 @@ function FrameResize()
     BGResize()
 
     ResizeEnergyBars()
-    ResizeFuryBars()
     ResizeChiBars()
 
     ComergyEnergyText:ClearAllPoints()
@@ -901,7 +729,7 @@ function BGResize()
                 right = right + diff
                 diff = 0
             end
-            if ((Comergy_Settings.ChiText) and ((status.comboEnabled) or (status.chiEnabled))) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
                 bottom = -(Comergy_Settings.Spacing + ComergyEnergyText:GetHeight())
                 left = left - diff
                 right = right + diff
@@ -915,7 +743,7 @@ function BGResize()
                 bottom = bottom - diff
                 diff = 0
             end
-            if (((Comergy_Settings.ChiText) and (status.comboEnabled)) or ((Comergy_Settings.ChiText) and (status.chiEnabled))) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
                 right = Comergy_Settings.Spacing + ComergyEnergyText:GetWidth()
                 top = top + diff
                 bottom = bottom - diff
@@ -933,10 +761,11 @@ function TextChanged()
     local combinedText = ""
     if (Comergy_Settings.TextCenter) then
         local text
+        --print(status.energyEnabled, status.manaEnabled, status.curChi, status.curEnergy, status.curMana)
         if ((Comergy_Settings.EnergyText) and (status.energyEnabled)) then
             text = combinedText .. status.curEnergy
             combinedText = text
-            if ((Comergy_Settings.ChiText) and ((status.comboEnabled) or (status.chiEnabled))) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
                 if (Comergy_Settings.VerticalBars) then
                     text = combinedText .. "\n"
                 else
@@ -945,16 +774,14 @@ function TextChanged()
                 combinedText = text
             end
         elseif ((Comergy_Settings.ManaText) and (status.manaEnabled)) then
-            local mana
+            local mana = status.curMana
             if (Comergy_Settings.ManaShortText) then
-                mana = math.floor(status.curMana / 1000) .. "k"
-            else
-                mana = status.curMana
+                mana = math.floor(status.curMana / 1000) .. "K"
             end
             text = combinedText .. mana
             combinedText = text
-            if ((Comergy_Settings.ChiText) and ((status.comboEnabled) or (status.chiEnabled))) or 
-                ((status.runeEnabled and Comergy_Settings.RuneText)) or (status.furyEnabled and Comergy_Settings.FuryText) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or
+                ((status.runeEnabled and Comergy_Settings.RuneText)) then
                 if (Comergy_Settings.VerticalBars) then
                     text = combinedText .. "\n"
                 else
@@ -963,18 +790,15 @@ function TextChanged()
                 combinedText = text
             end
         end
-        if ((Comergy_Settings.ChiText) and ((status.chiEnabled) or (status.comboEnabled))) then
+        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
             text = combinedText .. status.curChi
-            combinedText = text .. " " .. status.chiSymbol
-        elseif (Comergy_Settings.FuryText and status.furyEnabled) then
-            text = combinedText .. status.curFury
             combinedText = text .. " " .. status.chiSymbol
         elseif ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
             local runeReady = {false, false, false, false}
             for i = 1, 6 do
                 local _, _, isReady = GetRuneCooldown(i)
                 if (isReady) then
-                    local runeType = GetRuneType(i)
+                    local runeType = 4
                     runeReady[runeType] = true
                 end
             end
@@ -988,14 +812,21 @@ function TextChanged()
         ComergyText:SetText(combinedText)
 
     else
-        if (Comergy_Settings.EnergyText) then
+        if (Comergy_Settings.EnergyText and status.energyEnabled) then
             ComergyEnergyText:SetText(status.curEnergy)
-        elseif (Comergy_Settings.ManaText) then
-            ComergyEnergyText:SetText(status.curMana)
+        elseif (Comergy_Settings.ManaText and status.manaEnabled) then
+            local mana = status.curMana
+            if (Comergy_Settings.ManaShortText) then
+                mana = math.floor(status.curMana / 1000) .. "K"
+            end
+            ComergyEnergyText:SetText(mana)
         end
-        if ((Comergy_Settings.ChiText) and ((status.comboEnabled) or (status.chiEnabled))) then
+        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
             combinedText = status.curChi .. " " .. status.chiSymbol
             ComergyChiText:SetText(combinedText)
+            ComergyChiText:Show()
+        else
+            ComergyChiText:Hide()
         end
     end
 end
@@ -1032,11 +863,6 @@ function TextStyleChanged()
         else
             ComergyEnergyText:Hide()
         end
-        if ((Comergy_Settings.ChiText) and (status.comboEnabled)) then
-            ComergyChiText:Show()
-        else
-            ComergyChiText:Hide()
-        end
         if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
             ComergyChiText:Show()
         else
@@ -1046,7 +872,7 @@ function TextStyleChanged()
 
     ComergyEnergyText:SetText("100")
     ComergyEnergyText:SetWidth(ComergyEnergyText:GetStringWidth() + 5)
-    ComergyChiText:SetText("0 C")
+    ComergyChiText:SetText("0")
     ComergyChiText:SetWidth(ComergyChiText:GetStringWidth() + 5)
 end
 
@@ -1080,20 +906,19 @@ end
 function PopulateDefaultSettings()
     local defaultSettings = {
         Enabled = true;
-        Version = "@project-version@",
+        Version = "r32",
         ShowOnlyInCombat = false,
         ShowInStealth = true,
-        ShowWhenEnergyNotFull = true,
+        ShowWhenEnergyNotFull = false,
         Locked = false,
         CritSound = false,
         StealthSound = false,
-        Spacing = 4,
-        Width = 220,
+        Spacing = 3,
+        Width = 130,
         ChiHeight = 10,
         RuneHeight = 10,
         EnergyHeight = 10,
         ManaHeight = 10,
-        FuryHeight = 10,
         FlipBars = false,
         FlipOrientation = false,
         VerticalBars = false,
@@ -1114,13 +939,13 @@ function PopulateDefaultSettings()
         SoundEnergy1 = false,
         SoundEnergy2 = false,
         SoundEnergy3 = false,
-        SoundEnergy4 = true,
-        SoundEnergy5 = false,
+        SoundEnergy4 = false,
+        SoundEnergy5 = true,
 
         SplitEnergy1 = false,
-        SplitEnergy2 = true,
+        SplitEnergy2 = false,
         SplitEnergy3 = false,
-        SplitEnergy4 = true,
+        SplitEnergy4 = false,
 
         EnergyText = true,
         UnifiedEnergyColor = true,
@@ -1151,12 +976,12 @@ function PopulateDefaultSettings()
         SoundMana3 = false,
         SoundMana4 = false,
         SoundMana5 = false,
-        
+
         SplitMana1 = false,
         SplitMana2 = false,
         SplitMana3 = false,
         SplitMana4 = false,
-        
+
         ManaText = true,
         ManaShortText = true,
         UnifiedManaColor = true,
@@ -1164,37 +989,6 @@ function PopulateDefaultSettings()
 
         ManaBGColorAlpha = { 0.3, 0.3, 1, 0.5 },
         ManaBGFlash = true,
-
-        FuryThreshold1 = 100,
-        FuryThreshold2 = 200,
-        FuryThreshold3 = 600,
-        FuryThreshold4 = 800,
-
-        FuryColor0 = { 1, 0, 0 },
-        FuryColor1 = { 1, 0, 0 },
-        FuryColor2 = { 1, 0.5, 0 },
-        FuryColor3 = { 1, 1, 0 },
-        FuryColor4 = { 1, 1, 0 },
-        FuryColor5 = { 0, 1, 0 },
-
-        SoundFury1 = false,
-        SoundFury2 = false,
-        SoundFury3 = false,
-        SoundFury4 = false,
-        SoundFury5 = false,
-        
-        SplitFury1 = false,
-        SplitFury2 = true,
-        SplitFury3 = true,
-        SplitFury4 = false,
-        
-        FuryText = true,
-        FuryShortText = true,
-        UnifiedFuryColor = true,
-        GradientFuryColor = true,
-
-        FuryBGColorAlpha = { 0.3, 0.3, 1, 0.5 },
-        FuryBGFlash = true,
 
         SoundChi1 = false,
         SoundChi2 = false,
@@ -1207,7 +1001,7 @@ function PopulateDefaultSettings()
 
         ChiColor0 = { 0.5, 0.5, 0.5 },
         ChiColor1 = { 1, 0, 0 },
-        ChiColor2 = { 1, 0.5, 0 }, 
+        ChiColor2 = { 1, 0.5, 0 },
         ChiColor3 = { 1, 1, 0 },
         ChiColor4 = { 0, 1, 0 },
         ChiColor5 = { 0, 0.5, 1 },
@@ -1215,7 +1009,7 @@ function PopulateDefaultSettings()
         ChiColor7 = { 0, 1, 1 },
         ChiColor8 = { 0, 1, 1 },
 
-        ChiText = true,
+        ChiText = false,
         ChiBGAlpha = 0.1,
         UnifiedChiColor = false,
         ChiFlash = true,
@@ -1230,28 +1024,28 @@ function PopulateDefaultSettings()
         RuneColor1 = { 1, 0, 0 },  --Blood
         RuneColor2 = { 0, 1, 0 },  --Unholy
         RuneColor3 = { 0, 0.5, 1 },  --Frost
-        RuneColor4 = { 1, 0, 1},  --Death
+        RuneColor4 = { 0.8, 0.93, 1},  --Death
 
         RuneText = false,
         RuneBGAlpha = 0.4,
         RuneFlash = true,
-        RuneBGColorAlpha = { 0, 0, 0, 1 },
+        RuneBGColorAlpha = { 0, 0, 0, 0.5 },
 
         TextColor = { 1, 1, 1 },
         TextHeight = 14,
         TextFont = 3,
-        TextCenter = true,
+        TextCenter = false,
         TextCenterUp = true,
         BGColorAlpha = { 0, 0, 0, 0.6 },
 
         BarTexture = 5,
         DurationScale = 0.8,
 
-        X = 0,
-        Y = 0,
+        X = -150,
+        Y = -100,
 
-        ShowPlayerHealthBar = false,
-        ShowTargetHealthBar = false,
+        ShowPlayerHealthBar = true,
+        ShowTargetHealthBar = true,
 
         PlayerHeight = 1,
         TargetHeight = 1,
@@ -1260,51 +1054,21 @@ function PopulateDefaultSettings()
     return defaultSettings
 end
 
-function PopulateSettingsFrom(curSettings, fromSettings)
-    local defaultSettings = PopulateDefaultSettings()
+local function copySettings(cur, from)
+    if not cur then cur = {} end
 
-    if (not fromSettings) then
-        fromSettings = defaultSettings
-    end
-    if (not curSettings) then
-        curSettings = { }
-    end
-
-    for i, v in pairs(fromSettings) do
-        if ((curSettings[i] == nil) and (defaultSettings[i] ~= nil)) then
+    for k, v in pairs(from) do
+        if( cur[k] == nil ) and ( v ~= nil ) then
             if (type(v) == "table") then
-                curSettings[i] = { }
-                for j, w in pairs(v) do
-                    curSettings[i][j] = w
-                end
+                cur[k] = { }
+                copySettings(cur[k], v)
             else
-                curSettings[i] = v
+                cur[k] = v
             end
         end
     end
-    -- Complete all the settings from default
-    for i, v in pairs(defaultSettings) do
-        if (curSettings[i] == nil) then
-            if (type(v) == "table") then
-                curSettings[i] = { }
-                for j, w in pairs(v) do
-                    curSettings[i][j] = w
-                end
-            else
-                curSettings[i] = v
-            end
-        end
-    end
-    -- Discard deprecated settings
-    for i, v in pairs(curSettings) do
-        if (defaultSettings[i] == nil) then
-            curSettings[i] = nil
-        end
-    end
 
-    curSettings.Version = defaultSettings.Version
-    return curSettings
-
+    return cur
 end
 
 function Initialize()
@@ -1330,17 +1094,6 @@ function Initialize()
         energyBars[i].bg:SetAllPoints(energyBars[i])
         initValues = { 0.3 }
         cmg_InitObject(energyBars[i].bg, initValues)
-    end
-
-    for i = 1, ENERGY_SUBBAR_NUM do
-        furyBars[i] = getglobal("ComergyFuryBar" .. i)
-        local initValues = { 0, 1, 1, 1, 1 }
-        cmg_InitObject(furyBars[i], initValues)
-
-        furyBars[i].bg = furyBars[i]:CreateTexture(nil, "BORDER")
-        furyBars[i].bg:SetAllPoints(furyBars[i])
-        initValues = { 0.3 }
-        cmg_InitObject(furyBars[i].bg, initValues)
     end
 
     for i = 1, 8 do
@@ -1434,15 +1187,7 @@ function PowerTypeChanged()
     if (status.curPowerType ~= powerType) then
         status.energyEnabled = false
         status.manaEnabled = false
-        status.comboEnabled = false
         status.chiEnabled = false
-
-        if (powerType == "ENERGY") then
-            if (status.playerClass == ROGUE) or (status.playerClass == DRUID) then
-                status.comboEnabled = true
-                status.chiSymbol = "P"
-            end
-        end
 
         if (powerType == "MANA") then
             status.manaEnabled = true
@@ -1462,11 +1207,6 @@ function PowerTypeChanged()
             status.curEnergyHeight = 0
         end
 
-        if (status.furyEnabled) then
-            status.curFuryHeight = Comergy_Settings.FuryHeight
-        else
-            status.curFuryHeight = 0
-        end
     end
 
     TextStyleChanged()
@@ -1474,80 +1214,43 @@ end
 
 function ChiStatus()
     status.chiEnabled = false
-    --status.comboEnabled = false
     status.runeEnabled = false
-    status.furyEnabled = false
-    if (status.playerClass == MONK or status.playerClass == PRIEST or status.playerClass == PALADIN or status.playerClass == WARLOCK) then
-        status.chiEnabled = true
-        if (status.playerClass == MONK) then
-            status.curChiType = SPELL_POWER_CHI
-            status.chiSymbol = "C"
-        elseif (status.playerClass == PALADIN) then
-            status.curChiType = SPELL_POWER_HOLY_POWER
-            status.chiSymbol = "P"
-        elseif (status.playerClass == PRIEST) then
-            status.curChiType = SPELL_POWER_SHADOW_ORBS
-            status.chiSymbol = "O"
-            if (not (GetSpecialization() == 3)) then  --not shadow
-                status.chiEnabled = false
-            end
-        elseif (status.playerClass == WARLOCK) then
-            if (GetSpecialization() == 1) then  --aff
-                status.curChiType = SPELL_POWER_SOUL_SHARDS
-                status.chiSymbol = "S"
-            elseif (GetSpecialization() == 2) then  --demo
-                status.chiEnabled = false
-                status.furyEnabled = true
-                status.curChiType = SPELL_POWER_DEMONIC_FURY -- up to 1000
-                status.chiSymbol = "F"
-            elseif (GetSpecialization() == 3) then  --destro
-                status.curChiType = SPELL_POWER_BURNING_EMBERS
-                status.chiSymbol = "E"
-            end
-        end
-    elseif (status.playerClass == ROGUE) then
-        status.comboEnabled = true
-        status.chiSymbol = "P"
-    --elseif (status.playerClass == DRUID) then
-    --    if (status.curPowerType == "ENERGY") then
-    --        status.comboEnabled = true
-    --    else
-    --        status.chiEnabled = false
-    --    end
-    elseif (status.playerClass == DEATHKNIGHT) then
+    status.chiSymbol = ""
+
+    local class, chiType = status.playerClass, nil
+
+    if (class == MONK) then
+        chiType = SPELL_POWER_CHI
+    elseif (class == PALADIN) then
+        chiType = SPELL_POWER_HOLY_POWER
+    elseif (class == PRIEST) then
+        chiType = GetSpecialization() == 3 and SPELL_POWER_INSANITY
+    elseif (class == WARLOCK) then
+        chiType = SPELL_POWER_SOUL_SHARDS
+    elseif (class == MAGE) then
+        chiType = GetSpecialization() == 1 and SPELL_POWER_ARCANE_CHARGES
+    elseif (class == ROGUE) then
+        chiType = SPELL_POWER_COMBO_POINTS
+    elseif (class == DRUID) then
+        chiType = UnitPowerType(status.curUnit) == SPELL_POWER_ENERGY and SPELL_POWER_COMBO_POINTS or nil
+    elseif (class == DEATHKNIGHT) then
         status.runeEnabled = true
     end
 
-    if (GetSpecialization() == nil) then  --no specialization / lvl < 10
-        if (status.playerClass == MONK) then  --monks always have chi
-        elseif (status.playerClass == ROGUE and UnitLevel("player") >= 3) then  --rogues get combo points at lvl 3
-        elseif (status.playerClass == PALADIN and UnitLevel("player") >= 9) then  --paladins get holy power at lvl 9
-        else
-            status.chiEnabled = false
-            status.comboEnabled = false
-            status.furyEnabled = false
-        end
-    end
+    status.chiEnabled = not not chiType
+    status.curChiType = chiType
 
     if (status.curUnit == "vehicle") then
-        status.comboEnabled = true
         status.chiEnabled = false
         status.runeEnabled = false
-        status.furyEnabled = false
     end
 
-    if (status.chiEnabled or status.comboEnabled) then
+    if (status.chiEnabled) then
         status.curChiHeight = Comergy_Settings.ChiHeight
     elseif (status.runeEnabled) then
         status.curChiHeight = Comergy_Settings.RuneHeight
     else
         status.curChiHeight = 0
-    end
-
-    if (status.furyEnabled) then
-        status.curFuryHeight = Comergy_Settings.FuryHeight
-    else
-        status.curFuryHeight = 0
     end
 
     status.curChi = 0
@@ -1571,16 +1274,11 @@ function ReadStatus()
     status.curMana = UnitPower(status.curUnit, SPELL_POWER_MANA)
     status.maxMana = UnitPowerMax(status.curUnit, SPELL_POWER_MANA)
 
-    status.curFury = UnitPower(status.curUnit, SPELL_POWER_DEMONIC_FURY)
-    status.maxFury = UnitPowerMax(status.curUnit, SPELL_POWER_DEMONIC_FURY)
-
-    if (status.comboEnabled) then
-        status.curChi = UnitPower(status.curUnit, SPELL_POWER_COMBO_POINTS)
-    elseif (status.chiEnabled) then
+    if (status.chiEnabled) then
         status.curChi = UnitPower(status.curUnit, status.curChiType)
     end
     status.chiFlashing = 0
-    
+
     SetMaxChi()
 
     status.maxPlayerHealth = UnitHealthMax(status.curUnit)
@@ -1599,7 +1297,7 @@ function ReadStatus()
 end
 
 function OrderThresholds()
-    
+
     for i = 1, ENERGY_SUBBAR_NUM - 1 do
         local th = Comergy_Settings["EnergyThreshold"..i]
         if ((th) and (th < status.maxEnergy) and (th > 0)) then
@@ -1617,8 +1315,8 @@ function OrderThresholds()
             lastThreshold = orderedEnergyThresholds[i][1]
         end
     end
-    
-    
+
+
     for i = 1, ENERGY_SUBBAR_NUM - 1 do
         local th = Comergy_Settings["ManaThreshold"..i]
         if ((th) and (th < status.maxMana) and (th > 0)) then
@@ -1637,24 +1335,6 @@ function OrderThresholds()
         end
     end
 
-
-    for i = 1, ENERGY_SUBBAR_NUM - 1 do
-        local th = Comergy_Settings["FuryThreshold"..i]
-        if ((th) and (th < status.maxFury) and (th > 0)) then
-            local temp = { th, i }
-            orderedFuryThresholds[i] = temp
-        end
-    end
-    table.sort(orderedFuryThresholds, function(a, b) return a[1] < b[1] end)
-
-    lastThreshold = 0
-    for i = 1, #(orderedFuryThresholds) do
-        if (orderedFuryThresholds[i][1] == lastThreshold) then
-            orderedFuryThresholds[i][1] = -1
-        else
-            lastThreshold = orderedFuryThresholds[i][1]
-        end
-    end
 end
 
 function ComergyOnConfigChange()
@@ -1684,12 +1364,6 @@ function ComergyOnConfigChange()
         status.curEnergyHeight = 0
     end
 
-    if (status.furyEnabled) then
-        status.curFuryHeight = Comergy_Settings.FuryHeight
-    else
-        status.curFuryHeight = 0
-    end
-
     FrameResize()
 
     for i = 1, 8 do
@@ -1702,7 +1376,7 @@ function ComergyOnConfigChange()
         end
     end
 
-    if (status.chiEnabled or status.comboEnabled) then
+    if (status.chiEnabled) then
         status.curChiHeight = Comergy_Settings.ChiHeight
     elseif (status.runeEnabled) then
         status.curChiHeight = Comergy_Settings.RuneHeight
@@ -1717,12 +1391,7 @@ function ComergyOnConfigChange()
         cmg_ResetObject(energyBars[i], { energyBars[i].curValue[1], energyBars[i].curValue[2], energyBars[i].curValue[3], energyBars[i].curValue[4] + 0.01, 1 })
     end
 
-    for i = 1, numFuryBars do
-        cmg_GradientObject(furyBars[i].bg, 1, INSTANT_DURATION, Comergy_Settings.FuryBGColorAlpha[4] * 0.3)
-        cmg_ResetObject(furyBars[i], { furyBars[i].curValue[1], furyBars[i].curValue[2], furyBars[i].curValue[3], furyBars[i].curValue[4] + 0.01, 1 })
-    end
-
-    ComergyBG:SetTexture(Comergy_Settings.BGColorAlpha[1], Comergy_Settings.BGColorAlpha[2], Comergy_Settings.BGColorAlpha[3], Comergy_Settings.BGColorAlpha[4])
+    ComergyBG:SetColorTexture(Comergy_Settings.BGColorAlpha[1], Comergy_Settings.BGColorAlpha[2], Comergy_Settings.BGColorAlpha[3], Comergy_Settings.BGColorAlpha[4])
 
     if (Comergy_Settings.ShowPlayerHealthBar) then
         playerBar:Show()
@@ -1740,7 +1409,6 @@ function ComergyOnConfigChange()
     ManaChanged()
     ChiChanged()
     RuneChanged()
-    FuryChanged()
     TextStyleChanged()
     PlayerHealthChanged()
 
@@ -1770,48 +1438,23 @@ end
 function ComergyOnLoad(self)
     status.initialized = false
 
-    local class = select(2, UnitClass("player"))
+    status.playerClass = select(3, UnitClass("player"))
 
-    if (class == "DEATHKNIGHT") then
-        status.playerClass = DEATHKNIGHT
-    elseif (class == "DRUID") then
-        status.playerClass = DRUID
-    elseif (class == "HUNTER") then
-        status.playerClass = HUNTER
-    elseif (class == "MAGE") then
-        status.playerClass = MAGE
-    elseif (class == "MONK") then
-        status.playerClass = MONK
-    elseif (class == "PALADIN") then
-        status.playerClass = PALADIN
-    elseif (class == "PRIEST") then
-        status.playerClass = PRIEST
-    elseif (class == "ROGUE") then
-        status.playerClass = ROGUE
-    elseif (class == "SHAMAN") then
-        status.playerClass = SHAMAN
-    elseif (class == "WARLOCK") then
-        status.playerClass = WARLOCK
-    elseif (class == "WARRIOR") then
-        status.playerClass = WARRIOR
-    end
-
-    self:SetScript("OnEvent", function(self, event, ...)
+    self:SetScript("OnEvent", function(self, event, arg1, ...)
         if ((event == "ADDON_LOADED") or (event == "PLAYER_ENTERING_WORLD") or (event == "PLAYER_LOGIN")) then
             -- Execute any time
-            EventHandlers[event](...)
+            EventHandlers[event](arg1, ...)
         else
             if (not status.initialized) then
                 return
             end
             -- Events that need to be associated with player
-            if ((event == "UNIT_COMBO_POINTS") or (event == "UNIT_MAXPOWER") or (event == "UNIT_POWER")
-                or (event == "UNIT_MAXHEALTH") or (event == "UNIT_HEALTH")) then
-                if (select(1, ...) ~= "player" and select(1, ...) ~= "vehicle") then
+            if ((event == "UNIT_MAXPOWER") or (event == "UNIT_POWER") or (event == "UNIT_POWER_FREQUENT") or (event == "UNIT_MAXHEALTH") or (event == "UNIT_HEALTH") or (event == "PLAYER_SPECIALIZATION_CHANGED")) then
+                if (arg1 ~= "player" and arg1 ~= "vehicle") then
                     return
                 end
             end
-            EventHandlers[event](...)
+            EventHandlers[event](arg1, ...)
         end
     end)
 
@@ -1827,10 +1470,9 @@ function ComergyOnLoad(self)
     self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 
-    self:RegisterEvent("UNIT_COMBO_POINTS")
     self:RegisterEvent("UNIT_MAXPOWER")
-    self:RegisterEvent("PLAYER_TALENT_UPDATE")
-    self:RegisterEvent("UNIT_POWER")
+    --self:RegisterEvent("PLAYER_TALENT_UPDATE")
+    self:RegisterEvent("UNIT_POWER_FREQUENT")
     self:RegisterEvent("UNIT_MAXHEALTH")
     self:RegisterEvent("UNIT_HEALTH")
     self:RegisterEvent("UNIT_ENTERED_VEHICLE")
@@ -1838,7 +1480,7 @@ function ComergyOnLoad(self)
     self:RegisterEvent("UNIT_EXITED_VEHICLE")
     self:RegisterEvent("UNIT_EXITING_VEHICLE")
 
-    self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+    --self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
     self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     self:RegisterEvent("RUNE_TYPE_UPDATE")
     self:RegisterEvent("RUNE_POWER_UPDATE")
@@ -1858,8 +1500,6 @@ end
 function SetMaxChi()
     if (status.chiEnabled) then
         numChiBars = UnitPowerMax(status.curUnit, status.curChiType)
-    elseif (status.comboEnabled) then
-        numChiBars = UnitPowerMax(status.curUnit, SPELL_POWER_COMBO_POINTS)
     elseif (status.runeEnabled) then
         numChiBars = 6
     else
@@ -1873,8 +1513,7 @@ function ColorRune()
     end
     for i = 1, 6 do
         cmg_ResetObject(chiBars[i], { chiBars[i].curValue[1], chiBars[i].curValue[2], chiBars[i].curValue[3], chiBars[i].curValue[4] + 0.01 })
-        local runeType = GetRuneType(ConvertRune(i)) or math.ceil(ConvertRune(i)/2)
-        -- print("Rune:"..i.." Type:"..math.ceil(ConvertRune(i)/2))
+        local runeType = 4
         local color = Comergy_Settings["RuneColor"..runeType]
         for j = 1, 3 do
             cmg_GradientObject(chiBars[i], j + 1, INSTANT_DURATION, color[j])
@@ -1907,35 +1546,13 @@ function EventHandlers.ADDON_LOADED(addonName)
 end
 
 function EventHandlers.PLAYER_LOGIN()
-    status.talent = GetActiveSpecGroup()
-
---    if (not Comergy_Config) then
---        --noinspection GlobalCreationOutsideO
---        Comergy_Config = { }
---    end
-
-    --noinspection GlobalCreationOutsideO
-    Comergy_Config = Comergy_Config or {}
-
-    if (not Comergy_Config[status.talent]) then
-        Comergy_Config[status.talent] = PopulateSettingsFrom(Comergy_Config[status.talent], Comergy_Config)
-    end
-
-    for i, v in pairs(Comergy_Config) do
-        if ((i ~= 1) and (i ~= 2)) then
-            Comergy_Config[i] = nil
-        end
-    end
-
-    Comergy_Config[status.talent] = PopulateSettingsFrom(Comergy_Config[status.talent], Comergy_Config[3 - status.talent])
-
-    --noinspection GlobalCreationOutsideO
-    Comergy_Settings = Comergy_Config[status.talent]
+    status.playerGUID = UnitGUID("player")
+    ComergyChangeSettingsAccordingToSpec()
 end
 
 function EventHandlers.PLAYER_ENTERING_WORLD()
     status.playerGUID = UnitGUID("player")
-    
+
     if (CanExitVehicle() and UnitHasVehicleUI("player")) then
         status.curUnit = "vehicle"
     else
@@ -1951,10 +1568,8 @@ function EventHandlers.PLAYER_ENTERING_WORLD()
 
     status.curEnergy = 0  --makes sure bars get drawn initially
     status.curMana = 0
-    status.curFury = 200
     EnergyChanged()
     ManaChanged()
-    FuryChanged()
     ChiChanged()
     RuneChanged()
     PlayerHealthChanged()
@@ -1999,8 +1614,8 @@ function EventHandlers.UPDATE_SHAPESHIFT_FORM()
         status.playerInStealth = ((form > 0) and (form < 4))
         MainFrameToggle()
 
-        if ((form > 0) and (form < 4) and (Comergy_Settings.StealthSound) and (status.shapeshiftForm == 0)) then        
-            PlaySoundFile("Sound\\interface\\iQuestUpdate.wav")
+        if ((form > 0) and (form < 4) and (Comergy_Settings.StealthSound) and (status.shapeshiftForm == 0)) then
+            PlaySoundFile("Sound\\interface\\iQuestUpdate.ogg")
         end
         status.shapeshiftForm = form
     end
@@ -2028,14 +1643,6 @@ function EventHandlers.COMBAT_LOG_EVENT_UNFILTERED(...)
                 for i = 1, numEnergyBars do
                     cmg_ResetObject(energyBars[i].bg, FLASH_VALUES)
                     cmg_GradientObject(energyBars[i].bg, 1, FLASH_DURATION, Comergy_Settings.ManaBGColorAlpha[4] * 0.3)
-                end
-            end
-        elseif ((type == "SPELL_CAST_FAILED") and (select(15, ...) == ERR_OUT_OF_DEMONIC_FURY) and (Comergy_Settings.FuryBGFlash)) then
-            if (status.furyBGFlashing == 0) then
-                status.furyBGFlashing = FLASH_TIMES
-                for i = 1, numFuryBars do
-                    cmg_ResetObject(furyBars[i].bg, FLASH_VALUES)
-                    cmg_GradientObject(furyBars[i].bg, 1, FLASH_DURATION, Comergy_Settings.FuryBGColorAlpha[4] * 0.3)
                 end
             end
         elseif ((type == "SPELL_AURA_APPLIED") or (type == "SPELL_AURA_REFRESH")) then
@@ -2069,7 +1676,7 @@ function EventHandlers.COMBAT_LOG_EVENT_UNFILTERED(...)
                         if (ComergyBarTextures[Comergy_Settings.BarTexture][2]) then
                             energyBars[i]:SetStatusBarColor(energyBars[i].curValue[2], energyBars[i].curValue[3], energyBars[i].curValue[4])
                         else
-                            energyBars[i]:GetStatusBarTexture():SetTexture(energyBars[i].curValue[2], energyBars[i].curValue[3], energyBars[i].curValue[4])
+                            energyBars[i]:GetStatusBarTexture():SetColorTexture(energyBars[i].curValue[2], energyBars[i].curValue[3], energyBars[i].curValue[4])
                         end
                     end
                 end
@@ -2094,7 +1701,6 @@ function EventHandlers.PLAYER_ALIVE()
     ResizeEnergyBars()
     EnergyChanged()
     ManaChanged()
-    ResizeFuryBars()
     PlayerHealthChanged()
     TargetHealthChanged()
 end
@@ -2105,17 +1711,8 @@ function EventHandlers.PLAYER_UNGHOST()
     ResizeEnergyBars()
     EnergyChanged()
     ManaChanged()
-    ResizeFuryBars()
     PlayerHealthChanged()
     TargetHealthChanged()
-end
-
-function EventHandlers.UNIT_COMBO_POINTS()
-    -- print('Combo')
-    if (not status.comboEnabled) then
-        return
-    end
-    ChiChanged()
 end
 
 function EventHandlers.PLAYER_TARGET_CHANGED()
@@ -2186,11 +1783,9 @@ end
 function EventHandlers.UNIT_MAXPOWER()
     status.maxEnergy = UnitPowerMax(status.curUnit)
     status.maxMana = UnitPowerMax(status.curUnit, SPELL_POWER_MANA)
-    status.maxFury = UnitPowerMax(status.curUnit, SPELL_POWER_DEMONIC_FURY)
     SetMaxChi()
     ResizeChiBars()
     ResizeEnergyBars()
-    ResizeFuryBars()
 end
 
 function EventHandlers.PLAYER_TALENT_UPDATE()
@@ -2199,26 +1794,26 @@ function EventHandlers.PLAYER_TALENT_UPDATE()
 end
 
 -- handles switching specs at a trainer
-function EventHandlers.PLAYER_SPECIALIZATION_CHANGED()
+function EventHandlers.PLAYER_SPECIALIZATION_CHANGED(event, unit)
+    ComergyChangeSettingsAccordingToSpec()
     ComergyOnConfigChange()
     ComergyRestorePosition()
     ChiStatus()
     ReadStatus()
+    if (IsAddOnLoaded("Comergy_Redux_Options")) then
+        ComergyOptReadSettings()
+    end
 end
 
-function EventHandlers.UNIT_POWER()
+function EventHandlers.UNIT_POWER_FREQUENT()
     status.curEnergy = UnitPower(status.curUnit)
     status.curMana = UnitPower(status.curUnit, SPELL_POWER_MANA)
-    status.curFury = UnitPower(status.curUnit, SPELL_POWER_DEMONIC_FURY)
     MainFrameToggle()
-    if (status.chiEnabled or status.comboEnabled) then
+    if (status.chiEnabled) then
         if (status.curChi ~= UnitPower(status.curUnit, status.curChiType)) then
             ChiChanged()
         end
-    end 
-    if (status.furyEnabled) then
-        FuryChanged()
-    end 
+    end
 end
 
 function EventHandlers.UNIT_MAXHEALTH()
@@ -2245,26 +1840,53 @@ function EventHandlers.RUNE_POWER_UPDATE(i)
     RuneChanged()
 end
 
--- handles switching specs via dual spec
-function EventHandlers.ACTIVE_TALENT_GROUP_CHANGED()
-    status.talent = GetActiveSpecGroup()
+-- 163ui
+function ComergyChangeSettingsAccordingToSpec()
+    status.talent = GetSpecialization()
 
-    ChiStatus()
+    Comergy_Config = Comergy_Config or {}
 
     if (not Comergy_Config[status.talent]) then
-        Comergy_Config[status.talent] = { }
+        Comergy_Config[status.talent] = copySettings(nil, Comergy_Config)
     end
 
-    Comergy_Config[status.talent] = PopulateSettingsFrom(Comergy_Config[status.talent], Comergy_Config[3 - status.talent])
-    Comergy_Settings = Comergy_Config[status.talent]
+    local curSettings = Comergy_Config[status.talent]
+
+    for i = 1, GetNumSpecializations() do
+        if ( i ~= status.talent and Comergy_Config[i] ~= nil) then
+            copySettings(curSettings, Comergy_Config[i])
+            break
+        end
+    end
+
+    -- Complete all the settings from default
+    local defaultSettings = PopulateDefaultSettings()
+    copySettings(curSettings, defaultSettings)
+
+    -- Discard deprecated settings
+    for i, v in pairs(curSettings) do
+        if (defaultSettings[i] == nil) then
+            curSettings[i] = nil
+        end
+    end
+
+    curSettings.Version = defaultSettings.Version
+
+    Comergy_Settings = curSettings
+end
+
+-- handles switching specs via dual spec, deprecated in 7.0
+--[[
+function EventHandlers.ACTIVE_TALENT_GROUP_CHANGED()
+    ChiStatus()
+    ComergyChangeSettingsAccordingToSpec()
     ComergyOnConfigChange()
-
     ComergyRestorePosition()
-
     if (IsAddOnLoaded("Comergy_Redux_Options")) then
         ComergyOptReadSettings()
     end
 end
+--]]
 
 function ComergySavePosition()
     local frameX, frameY
@@ -2313,7 +1935,7 @@ function OnFrameUpdate(elapsed)
         return
     end
 
-    if (status.comboEnabled or status.chiEnabled or status.runeEnabled) then
+    if (status.chiEnabled or status.runeEnabled) then
         for i = 1, 8 do
             if (cmg_UpdateObject(chiBars[i], elapsed)) then
                 -- Very nasty hack for rotating textures...
@@ -2325,12 +1947,12 @@ function OnFrameUpdate(elapsed)
                 if (ComergyBarTextures[Comergy_Settings.BarTexture][2]) then
                     chiBars[i]:SetStatusBarColor(chiBars[i].curValue[2], chiBars[i].curValue[3], chiBars[i].curValue[4])
                 else
-                    chiBars[i]:GetStatusBarTexture():SetTexture(chiBars[i].curValue[2], chiBars[i].curValue[3], chiBars[i].curValue[4])
+                    chiBars[i]:GetStatusBarTexture():SetColorTexture(chiBars[i].curValue[2], chiBars[i].curValue[3], chiBars[i].curValue[4])
                 end
             end
         end
 
-        if (status.chiEnabled or status.comboEnabled) then
+        if (status.chiEnabled) then
             if ((status.chiFlashing > 0) and (chiBars[1].curValue[1] == Comergy_Settings.ChiBGAlpha)) then
                 status.chiFlashing = status.chiFlashing - 1
                 if (status.chiFlashing > 0) then
@@ -2384,19 +2006,19 @@ function OnFrameUpdate(elapsed)
             if (ComergyBarTextures[Comergy_Settings.BarTexture][2]) then
                 energyBars[i]:SetStatusBarColor(r, g, b)
             else
-                energyBars[i]:GetStatusBarTexture():SetTexture(r, g, b)
+                energyBars[i]:GetStatusBarTexture():SetColorTexture(r, g, b)
             end
         end
 
         if (cmg_UpdateObject(energyBars[i].bg, elapsed)) then
-            energyBars[i].bg:SetTexture(Comergy_Settings.EnergyBGColorAlpha[1], Comergy_Settings.EnergyBGColorAlpha[2], 
+            energyBars[i].bg:SetColorTexture(Comergy_Settings.EnergyBGColorAlpha[1], Comergy_Settings.EnergyBGColorAlpha[2],
                 Comergy_Settings.EnergyBGColorAlpha[3], energyBars[i].bg.curValue[1])
         end
     end
 
     if (status.playerClass == DEATHKNIGHT) then
         for i = 1, 6 do
-            chiBars[i].bg:SetTexture(Comergy_Settings.RuneBGColorAlpha[1], Comergy_Settings.RuneBGColorAlpha[2], 
+            chiBars[i].bg:SetColorTexture(Comergy_Settings.RuneBGColorAlpha[1], Comergy_Settings.RuneBGColorAlpha[2],
                     Comergy_Settings.RuneBGColorAlpha[3], (Comergy_Settings.RuneBGColorAlpha[4]))
         end
     end
@@ -2415,14 +2037,14 @@ function OnFrameUpdate(elapsed)
         if (status.energyBGFlashing > 0) then
             for i = 1, numEnergyBars do
                 cmg_ResetObject(energyBars[i].bg, FLASH_VALUES)
-                energyBars[i].bg:SetTexture(Comergy_Settings.EnergyBGColorAlpha[1], Comergy_Settings.EnergyBGColorAlpha[2],
+                energyBars[i].bg:SetColorTexture(Comergy_Settings.EnergyBGColorAlpha[1], Comergy_Settings.EnergyBGColorAlpha[2],
                     Comergy_Settings.EnergyBGColorAlpha[3], energyBars[i].bg.curValue[1])
                 cmg_GradientObject(energyBars[i].bg, 1, FLASH_DURATION, Comergy_Settings.EnergyBGColorAlpha[4] * 0.3)
             end
         else
             for i = 1, numEnergyBars do
                 cmg_ResetObject(energyBars[i].bg, { Comergy_Settings.EnergyBGColorAlpha[4] * 0.3 })
-                energyBars[i].bg:SetTexture(Comergy_Settings.EnergyBGColorAlpha[1], Comergy_Settings.EnergyBGColorAlpha[2],
+                energyBars[i].bg:SetColorTexture(Comergy_Settings.EnergyBGColorAlpha[1], Comergy_Settings.EnergyBGColorAlpha[2],
                     Comergy_Settings.EnergyBGColorAlpha[3], energyBars[i].bg.curValue[1])
             end
         end
@@ -2431,71 +2053,14 @@ function OnFrameUpdate(elapsed)
     if (Comergy_Settings.ShowPlayerHealthBar) then
         if (cmg_UpdateObject(playerBar, elapsed)) then
             playerBar:SetValue(playerBar.curValue[1])
-            playerBar:GetStatusBarTexture():SetTexture(playerBar.curValue[2], playerBar.curValue[3], playerBar.curValue[4])
+            playerBar:GetStatusBarTexture():SetColorTexture(playerBar.curValue[2], playerBar.curValue[3], playerBar.curValue[4])
         end
     end
 
     if (Comergy_Settings.ShowTargetHealthBar) then
         if (cmg_UpdateObject(targetBar, elapsed)) then
             targetBar:SetValue(targetBar.curValue[1])
-            targetBar:GetStatusBarTexture():SetTexture(targetBar.curValue[2], targetBar.curValue[3], targetBar.curValue[4])
-        end
-    end
-
-    if (status.furyEnabled) then
-        for i = 1, numFuryBars do
-            if (cmg_UpdateObject(furyBars[i], elapsed)) then
-                cmg_SetStatusBarValue(furyBars[i], furyBars[i].curValue[1])
-                local r, g, b
-                if (status.furyFlashing > 0) then
-                    furyBars[i]:SetAlpha(furyBars[i].curValue[5])
-                    r = Comergy_Settings.furyFlashColor[1]
-                    g = Comergy_Settings.furyFlashColor[2]
-                    b = Comergy_Settings.furyFlashColor[3]
-                else
-                    r = furyBars[i].curValue[2]
-                    g = furyBars[i].curValue[3]
-                    b = furyBars[i].curValue[4]
-                end
-
-                if (ComergyBarTextures[Comergy_Settings.BarTexture][2]) then
-                    furyBars[i]:SetStatusBarColor(r, g, b)
-                else
-                    furyBars[i]:GetStatusBarTexture():SetTexture(r, g, b)
-                end
-            end
-
-            if (cmg_UpdateObject(furyBars[i].bg, elapsed)) then
-                furyBars[i].bg:SetTexture(Comergy_Settings.FuryBGColorAlpha[1], Comergy_Settings.FuryBGColorAlpha[2], 
-                    Comergy_Settings.FuryBGColorAlpha[3], furyBars[i].bg.curValue[1])
-            end
-        end
-    end
-
-    if ((status.furyFlashing > 0) and (furyBars[1].curValue[5] == 0)) then
-        local newValues = { -1, -1, -1, -1, 1 }
-        for i = 1, numFuryBars do
-            cmg_ResetObject(furyBars[i], newValues)
-            furyBars[i]:SetAlpha(1)
-            cmg_GradientObject(furyBars[i], 5, FLASH_DURATION, 0)
-        end
-    end
-
-    if ((status.furyBGFlashing > 0) and (furyBars[1].bg.curValue[1] == Comergy_Settings.FuryBGColorAlpha[4] * 0.3)) then
-        status.furyBGFlashing = status.furyBGFlashing - 1
-        if (status.furyBGFlashing > 0) then
-            for i = 1, numFuryBars do
-                cmg_ResetObject(furyBars[i].bg, FLASH_VALUES)
-                furyBars[i].bg:SetTexture(Comergy_Settings.FuryBGColorAlpha[1], Comergy_Settings.FuryBGColorAlpha[2],
-                    Comergy_Settings.FuryBGColorAlpha[3], furyBars[i].bg.curValue[1])
-                cmg_GradientObject(furyBars[i].bg, 1, FLASH_DURATION, Comergy_Settings.FuryBGColorAlpha[4] * 0.3)
-            end
-        else
-            for i = 1, numFuryBars do
-                cmg_ResetObject(furyBars[i].bg, { Comergy_Settings.FuryBGColorAlpha[4] * 0.3 })
-                furyBars[i].bg:SetTexture(Comergy_Settings.FuryBGColorAlpha[1], Comergy_Settings.FuryBGColorAlpha[2],
-                    Comergy_Settings.FuryBGColorAlpha[3], furyBars[i].bg.curValue[1])
-            end
+            targetBar:GetStatusBarTexture():SetColorTexture(targetBar.curValue[2], targetBar.curValue[3], targetBar.curValue[4])
         end
     end
 end
@@ -2569,40 +2134,6 @@ function OnPeriodicUpdate()
             end
 
             ManaChanged(isSmallInc)
-        end
-    end
-
-    if (status.furyEnabled) then
-        local curFury = UnitPower(status.curUnit, SPELL_POWER_DEMONIC_FURY)
-        if (status.curFury ~= curFury) then
-            if ((curFury > status.curFury) and ((not Comergy_Settings.ShowOnlyInCombat) or (status.playerInCombat))) then
-                local sound = false
-                for i = 1, ENERGY_SUBBAR_NUM - 1 do
-                    if ((Comergy_Settings["FuryThreshold"..i] > status.curFury) and (Comergy_Settings["FuryThreshold"..i] <= curFury) and (Comergy_Settings["SoundFury"..i])) then
-                        sound = true
-                        break
-                    end
-                end
-                if ((status.maxFury == curFury) and (Comergy_Settings["SoundFury"..ENERGY_SUBBAR_NUM])) then
-                    sound = true
-                end
-                if (sound) then
-                    PlaySoundFile("Interface\\AddOns\\Comergy_Redux\\sound\\energytick.ogg")
-                end
-            end
-
-            local diff = curFury - status.curFury
-            local isSmallInc = (diff >= 1) and (diff <= 3)
-            status.curFury = curFury
-
-            if ((status.curFury == status.maxFury) and ((status.curPowerType == "ENERGY") or (status.curPowerType == "FOCUS"))) then
-                MainFrameToggle()
-            end
-            if ((status.curFury == 0) and ((status.curPowerType == "RAGE") or (status.curPowerType == "RUNIC_POWER"))) then
-                MainFrameToggle()
-            end
-
-            FuryChanged(isSmallInc)
         end
     end
 

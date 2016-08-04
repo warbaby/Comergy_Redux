@@ -1,4 +1,4 @@
-## Interface: 50400
+## Interface: 70000
 ## Title: Comergy Redux Options
 ## Notes: Options module for Comergy Redux
 ## Version: @project-version@
@@ -7,6 +7,8 @@
 ## LoadOnDemand: 1
 
 locales\localization.enUS.lua
+locales\localization.zhCN.lua
+locales\localization.zhTW.lua
 
 comergyopt.xml
 

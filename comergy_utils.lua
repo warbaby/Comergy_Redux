@@ -28,7 +28,7 @@ function cmg_ResetObject(object, resetValues)
 end
 
 function cmg_GradientObject(object, idx, duration, endValue)
-    if (object.endValue[idx] ~= endValue) then
+    if object and (object.endValue[idx] ~= endValue) then
         object.deltaValue[idx] = (endValue - object.curValue[idx]) / duration
         object.endValue[idx] = endValue
     end

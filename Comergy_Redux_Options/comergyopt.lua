@@ -83,7 +83,7 @@ function CreateSlider(type, name, min, max, parent, x, y, width, valueStep, titl
         if (playerClass == MONK) then
             extension = "_CHI"
         elseif (playerClass == PRIEST) then
-            extension = "_SHADOW_ORB"
+            extension = "_INSANITY"
         elseif (playerClass == PALADIN) then
             extension = "_HOLY_POWER"
         elseif (playerClass == DEATHKNIGHT) then
@@ -145,7 +145,7 @@ function CreateCheckButton(name, parent, x, y, type)
         if (playerClass == MONK) then
             extension = "_CHI"
         elseif (playerClass == PRIEST) then
-            extension = "_SHADOW_ORB"
+            extension = "_INSANITY"
         elseif (playerClass == PALADIN) then
             extension = "_HOLY_POWER"
         elseif (playerClass == DEATHKNIGHT) then
@@ -223,7 +223,7 @@ function CreateColorButton(name, parent, x, y, type, editBox)
         if (playerClass == MONK) then
             extension = "_CHI"
         elseif (playerClass == PRIEST) then
-            extension = "_SHADOW_ORB"
+            extension = "_INSANITY"
         elseif (playerClass == PALADIN) then
             extension = "_HOLY_POWER"
         elseif (playerClass == DEATHKNIGHT) then
@@ -515,7 +515,6 @@ function ComergyOptOnLoad()
     CreateSlider("", "TextHeight",         6, 26,     ComergyOptBarFrame,     20, -210, 110, 1, COMERGY_FONT_SIZE,     true)
 
     CreateSlider("energy", "EnergyHeight", 0, 50,     ComergyOptEnergyFrame,  20, -220, 110, 1, COMERGY_ENERGY_HEIGHT, false)
-    CreateSlider("",       "FuryHeight",   0, 50,     ComergyOptFuryFrame,    20, -220, 110, 1, COMERGY_FURY_HEIGHT,   false)
     CreateSlider("mana",   "ManaHeight",   0, 50,     ComergyOptManaFrame,    20, -220, 110, 1, COMERGY_MANA_HEIGHT,   false)
 
     CreateSlider("combo", "ChiHeight",     0,    50,  ComergyOptComboFrame,   25,  -260, 110, 1,    COMERGY_COMBO_HEIGHT,   false)
@@ -560,8 +559,8 @@ function ComergyOptOnLoad()
 
     CreateCheckButton("EnergyBGFlash", ComergyOptEnergyFrame, 20, -245, "energy")
     CreateCheckButton("EnergyText", ComergyOptEnergyFrame, 20, -265, "energy")
-    CreateCheckButton("UnifiedEnergyColor", ComergyOptEnergyFrame, 120, -265, "energy")
-    CreateCheckButton("GradientEnergyColor", ComergyOptEnergyFrame, 120, -285, "energy")
+    CreateCheckButton("UnifiedEnergyColor", ComergyOptEnergyFrame, 150, -265, "energy")
+    CreateCheckButton("GradientEnergyColor", ComergyOptEnergyFrame, 150, -285, "energy")
 
     CreateCheckButton("SoundMana1", ComergyOptManaFrame, 80, -60)
     CreateCheckButton("SoundMana2", ComergyOptManaFrame, 80, -90)
@@ -576,23 +575,8 @@ function ComergyOptOnLoad()
     CreateCheckButton("ManaBGFlash", ComergyOptManaFrame, 20, -245, "mana")
     CreateCheckButton("ManaText", ComergyOptManaFrame, 20, -265, "mana")
     CreateCheckButton("ManaShortText", ComergyOptManaFrame, 30, -285, "mana")
-    CreateCheckButton("UnifiedManaColor", ComergyOptManaFrame, 120, -265, "mana")
-    CreateCheckButton("GradientManaColor", ComergyOptManaFrame, 120, -285, "mana")
-
-    CreateCheckButton("SoundFury1", ComergyOptFuryFrame, 80, -60)
-    CreateCheckButton("SoundFury2", ComergyOptFuryFrame, 80, -90)
-    CreateCheckButton("SoundFury3", ComergyOptFuryFrame, 80, -120)
-    CreateCheckButton("SoundFury4", ComergyOptFuryFrame, 80, -150)
-    CreateCheckButton("SoundFury5", ComergyOptFuryFrame, 80, -180)
-    CreateCheckButton("SplitFury1", ComergyOptFuryFrame, 130, -60)
-    CreateCheckButton("SplitFury2", ComergyOptFuryFrame, 130, -90)
-    CreateCheckButton("SplitFury3", ComergyOptFuryFrame, 130, -120)
-    CreateCheckButton("SplitFury4", ComergyOptFuryFrame, 130, -150)
-
-    CreateCheckButton("FuryBGFlash", ComergyOptFuryFrame, 20, -245, "")
-    CreateCheckButton("FuryText", ComergyOptFuryFrame, 20, -265, "")
-    CreateCheckButton("UnifiedFuryColor", ComergyOptFuryFrame, 120, -265, "")
-    CreateCheckButton("GradientFuryColor", ComergyOptFuryFrame, 120, -285, "")
+    CreateCheckButton("UnifiedManaColor", ComergyOptManaFrame, 150, -265, "mana")
+    CreateCheckButton("GradientManaColor", ComergyOptManaFrame, 150, -285, "mana")
 
     CreateCheckButton("SoundChi1", ComergyOptComboFrame, 100, -60)
     CreateCheckButton("SoundChi2", ComergyOptComboFrame, 100, -90)
@@ -604,13 +588,13 @@ function ComergyOptOnLoad()
     CreateCheckButton("UnifiedChiColor", ComergyOptComboFrame, 20, -315, "combo")
     CreateCheckButton("ChiFlash", ComergyOptComboFrame, 20, -335, "combo")
 
-    CreateCheckButton("SoundRune1", ComergyOptRuneFrame, 120, -30)
-    CreateCheckButton("SoundRune2", ComergyOptRuneFrame, 120, -60)
-    CreateCheckButton("SoundRune3", ComergyOptRuneFrame, 120, -90)
+    --CreateCheckButton("SoundRune1", ComergyOptRuneFrame, 120, -30)
+    --CreateCheckButton("SoundRune2", ComergyOptRuneFrame, 120, -60)
+    --CreateCheckButton("SoundRune3", ComergyOptRuneFrame, 120, -90)
     CreateCheckButton("SoundRune4", ComergyOptRuneFrame, 120, -120)
 
     --try and fix this
-    CreateCheckButton("RuneText", ComergyOptRuneFrame, 20, -196, "combo")
+    --CreateCheckButton("RuneText", ComergyOptRuneFrame, 20, -196, "combo")
     CreateCheckButton("RuneFlash", ComergyOptRuneFrame, 130, -196, "combo")
 
     CreateEditBox("EnergyThreshold1", ComergyOptEnergyFrame, 30, -53)
@@ -622,11 +606,6 @@ function ComergyOptOnLoad()
     CreateEditBox("ManaThreshold2", ComergyOptManaFrame, 20, -83)
     CreateEditBox("ManaThreshold3", ComergyOptManaFrame, 20, -113)
     CreateEditBox("ManaThreshold4", ComergyOptManaFrame, 20, -143)
-
-    CreateEditBox("FuryThreshold1", ComergyOptFuryFrame, 30, -53)
-    CreateEditBox("FuryThreshold2", ComergyOptFuryFrame, 30, -83)
-    CreateEditBox("FuryThreshold3", ComergyOptFuryFrame, 30, -113)
-    CreateEditBox("FuryThreshold4", ComergyOptFuryFrame, 30, -143)
 
     for i = 1, 4 do
         getglobal("ComergyOptEditBoxManaThreshold"..i):SetMaxLetters(6)  --mana pools are so big!
@@ -656,15 +635,6 @@ function ComergyOptOnLoad()
 
     CreateColorButton("ManaBGColorAlpha", ComergyOptManaFrame, 190, -215, "mana", true)
 
-    CreateColorButton("FuryColor0", ComergyOptFuryFrame, 170, -30, "", true)
-    CreateColorButton("FuryColor1", ComergyOptFuryFrame, 170, -60, "", true)
-    CreateColorButton("FuryColor2", ComergyOptFuryFrame, 170, -90, "", true)
-    CreateColorButton("FuryColor3", ComergyOptFuryFrame, 170, -120, "", true)
-    CreateColorButton("FuryColor4", ComergyOptFuryFrame, 170, -150, "", true)
-    CreateColorButton("FuryColor5", ComergyOptFuryFrame, 170, -180, "", true)
-
-    CreateColorButton("FuryBGColorAlpha", ComergyOptFuryFrame, 190, -215, "", true)
-
     CreateColorButton("ChiColor0", ComergyOptComboFrame, 150, -30, "", true)
     CreateColorButton("ChiColor1", ComergyOptComboFrame, 150, -60, "", true)
     CreateColorButton("ChiColor2", ComergyOptComboFrame, 150, -90, "", true)
@@ -672,9 +642,9 @@ function ComergyOptOnLoad()
     CreateColorButton("ChiColor4", ComergyOptComboFrame, 150, -150, "", true)
     CreateColorButton("ChiColor5", ComergyOptComboFrame, 150, -180, "", true)
 
-    CreateColorButton("RuneColor1", ComergyOptRuneFrame, 170, -30, "", true)
-    CreateColorButton("RuneColor2", ComergyOptRuneFrame, 170, -60, "", true)
-    CreateColorButton("RuneColor3", ComergyOptRuneFrame, 170, -90, "", true)
+    --CreateColorButton("RuneColor1", ComergyOptRuneFrame, 170, -30, "", true)
+    --CreateColorButton("RuneColor2", ComergyOptRuneFrame, 170, -60, "", true)
+    --CreateColorButton("RuneColor3", ComergyOptRuneFrame, 170, -90, "", true)
     CreateColorButton("RuneColor4", ComergyOptRuneFrame, 170, -120, "", true)
 
     CreateColorButton("RuneBGColorAlpha", ComergyOptRuneFrame, 190, -215, "", true)
@@ -727,12 +697,12 @@ function ComergyOptOnLoad()
         ComergyOptTab5:Hide()
         comboText = COMERGY_HOLY_POWER
     elseif (playerClass == PRIEST) then
-        ComergyOptTab3:SetText(COMERGY_MANA)
+        ComergyOptTab3:SetText(COMERGY_ENERGY)
         ComergyOptTab3:Show()
-        ComergyOptTab4:SetText(COMERGY_SHADOW_ORB)
+        ComergyOptTab4:SetText(COMERGY_INSANITY)
         ComergyOptTab4:Show()
-        ComergyOptTab5:Hide()
-        comboText = COMERGY_SHADOW_ORB
+        --ComergyOptTab5:Hide()
+        comboText = COMERGY_INSANITY
     elseif (playerClass == ROGUE) then
         ComergyOptTab3:SetText(COMERGY_ENERGY)
         ComergyOptTab3:Show()
@@ -751,8 +721,6 @@ function ComergyOptOnLoad()
         ComergyOptTab3:Show()
         ComergyOptTab4:SetText(COMERGY_SOUL_SHARD)
         ComergyOptTab4:Show()
-        ComergyOptTab5:SetText(COMERGY_DEMONIC_FURY)
-        ComergyOptTab5:Show()
         comboText = COMERGY_SOUL_SHARD
         isFiveTabs = true
     elseif (playerClass == WARRIOR) then
@@ -775,17 +743,14 @@ function ComergyOptOnLoad()
     ComergyOptComboText4:SetText(comboText .. " 4")
     ComergyOptComboText5:SetText(comboText .. " 5")
 
-    ComergyOptRuneText1:SetText(COMERGY_BLOOD .. " " .. COMERGY_RUNE)
-    ComergyOptRuneText2:SetText(COMERGY_UNHOLY .. " " .. COMERGY_RUNE)
-    ComergyOptRuneText3:SetText(COMERGY_FROST .. " " .. COMERGY_RUNE)
+    ComergyOptRuneText1:SetText(COMERGY_BLOOD .. " " .. COMERGY_RUNE) ComergyOptRuneText1:Hide()
+    ComergyOptRuneText2:SetText(COMERGY_UNHOLY .. " " .. COMERGY_RUNE) ComergyOptRuneText2:Hide()
+    ComergyOptRuneText3:SetText(COMERGY_FROST .. " " .. COMERGY_RUNE) ComergyOptRuneText3:Hide()
     ComergyOptRuneText4:SetText(COMERGY_DEATH .. " " .. COMERGY_RUNE)
 
     ComergyOptEnergyTextSound:SetText(COMERGY_TEXT_SOUND)
     ComergyOptEnergyTextSplit:SetText(COMERGY_TEXT_SPLIT)
     ComergyOptEnergyTextColor:SetText(COMERGY_TEXT_COLOR)
-    ComergyOptFuryTextSound:SetText(COMERGY_TEXT_SOUND)
-    ComergyOptFuryTextSplit:SetText(COMERGY_TEXT_SPLIT)
-    ComergyOptFuryTextColor:SetText(COMERGY_TEXT_COLOR)
     ComergyOptRogueTextFlash:SetText(COMERGY_TEXT_FLASH)
     ComergyOptRogueTextAnticipation:SetText(COMERGY_TEXT_ANTICIPATION)
     ComergyOptRogueTextAnticipation2:SetText("More Anticipation settings coming soon")
@@ -897,7 +862,6 @@ function ComergyOptTabOnClick(id)
     ComergyOptManaFrame:Hide()
     ComergyOptRogueFrame:Hide()
     ComergyOptRuneFrame:Hide()
-    ComergyOptFuryFrame:Hide()
     PlayerClass()
     if (id == 1) then
         ComergyOptGeneralFrame:Show()
@@ -922,8 +886,6 @@ function ComergyOptTabOnClick(id)
             ComergyOptRogueFrame:Show()
         elseif (playerClass == DRUID or playerClass == MONK) then
             ComergyOptManaFrame:Show()
-        elseif (playerClass == WARLOCK) then
-            ComergyOptFuryFrame:Show()
         end
     end
 end
