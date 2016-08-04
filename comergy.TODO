@@ -1,0 +1,18 @@
+ACE:
+ - Support other add-on bar textures
+   - Vuhdo
+   - tidyPlates
+   - Pitbul4
+   - etc.
+ - Better Font Selection
+ - Set up Localization
+ - tooltips for option boxes
+ - More sound options
+
+Features:
+ - Eclipse Support
+ - Player / Target Health Bar textures
+
+Known issues:
+ - switching stance sometimes makes bar go out of frame.
+   - caster to bear

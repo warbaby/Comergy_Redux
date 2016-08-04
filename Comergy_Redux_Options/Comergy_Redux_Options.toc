@@ -1,0 +1,12 @@
+## Interface: 50400
+## Title: Comergy Redux Options
+## Notes: Options module for Comergy Redux
+## Version: @project-version@
+## Author: Asymptote
+## Dependencies: Comergy_Redux
+## LoadOnDemand: 1
+
+locales\localization.enUS.lua
+
+comergyopt.xml
+
