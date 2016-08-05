@@ -617,22 +617,26 @@ function RuneChanged()
         return
     end
 
+    status.curChi = 0
     for i = 1, 6 do
         j = ConvertRune(i)
         local runeStart, runeDuration, isReady = GetRuneCooldown(j)
         if (isReady) then
-            cmg_GradientObject(chiBars[i], 1, DURATIONS["CHI_SHOW"][1], 1)
+            --cmg_GradientObject(chiBars[i], 1, DURATIONS["CHI_SHOW"][1], 1)
+            if(chiBars[i]:GetValue()~=0) then ColorRune(DURATIONS["CHI_SHOW"][1]) end
             chiBars[i]:SetValue(0)
             if (Comergy_Settings.RuneFlash) then
                 if (status.runeFlashing[i] == -1) then
-                    status.runeFlashing[i] = FLASH_TIMES
+                    status.runeFlashing[i] = FLASH_TIMES - 1
                     cmg_ResetObject(chiBars[i], FLASH_VALUES)
                     chiBars[i]:SetAlpha(FLASH_HIGH)
-                    cmg_GradientObject(chiBars[i], 1, FLASH_DURATION, Comergy_Settings.RuneBGAlpha)
+                    cmg_GradientObject(chiBars[i], 1, FLASH_DURATION, 0.5) --Comergy_Settings.RuneBGAlpha
                 end
             end
+            status.curChi = status.curChi + 1
         else
-            cmg_GradientObject(chiBars[i], 1, DURATIONS["CHI_HIDE"][1], Comergy_Settings.RuneBGAlpha)
+            --cmg_GradientObject(chiBars[i], 1, DURATIONS["CHI_HIDE"][1], Comergy_Settings.RuneBGAlpha)
+            if(chiBars[i]:GetValue()==0) then ColorRune(DURATIONS["CHI_HIDE"][1]) end
             local value = (runeDuration - (GetTime() - runeStart)) * -1
             if (value >= -10 and value <= 0) then
                 chiBars[i]:SetValue(value)
@@ -709,7 +713,7 @@ function FrameResize()
         ComergyChiText:SetPoint("TOP", ComergyMainFrame, "BOTTOM", 0, -3)
     else
         ComergyEnergyText:SetPoint("RIGHT", ComergyMainFrame, "LEFT", -3, 0)
-        ComergyChiText:SetPoint("LEFT", ComergyMainFrame, "RIGHT", 3, 0)
+        ComergyChiText:SetPoint("LEFT", ComergyMainFrame, "RIGHT", 3 + (ComergyEnergyText:GetWidth() - ComergyChiText:GetWidth())/2, 0)
     end
 end
 
@@ -729,7 +733,7 @@ function BGResize()
                 right = right + diff
                 diff = 0
             end
-            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
                 bottom = -(Comergy_Settings.Spacing + ComergyEnergyText:GetHeight())
                 left = left - diff
                 right = right + diff
@@ -743,7 +747,7 @@ function BGResize()
                 bottom = bottom - diff
                 diff = 0
             end
-            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
                 right = Comergy_Settings.Spacing + ComergyEnergyText:GetWidth()
                 top = top + diff
                 bottom = bottom - diff
@@ -765,7 +769,7 @@ function TextChanged()
         if ((Comergy_Settings.EnergyText) and (status.energyEnabled)) then
             text = combinedText .. status.curEnergy
             combinedText = text
-            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
                 if (Comergy_Settings.VerticalBars) then
                     text = combinedText .. "\n"
                 else
@@ -780,8 +784,7 @@ function TextChanged()
             end
             text = combinedText .. mana
             combinedText = text
-            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or
-                ((status.runeEnabled and Comergy_Settings.RuneText)) then
+            if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
                 if (Comergy_Settings.VerticalBars) then
                     text = combinedText .. "\n"
                 else
@@ -790,24 +793,9 @@ function TextChanged()
                 combinedText = text
             end
         end
-        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
+        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
             text = combinedText .. status.curChi
             combinedText = text .. " " .. status.chiSymbol
-        elseif ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
-            local runeReady = {false, false, false, false}
-            for i = 1, 6 do
-                local _, _, isReady = GetRuneCooldown(i)
-                if (isReady) then
-                    local runeType = 4
-                    runeReady[runeType] = true
-                end
-            end
-            for i = 1, 4 do
-                text = combinedText
-                if (runeReady[i]) then
-                    combinedText = text .. " " .. COMERGY_RUNE_NAME[i]
-                end
-            end
         end
         ComergyText:SetText(combinedText)
 
@@ -817,11 +805,14 @@ function TextChanged()
         elseif (Comergy_Settings.ManaText and status.manaEnabled) then
             local mana = status.curMana
             if (Comergy_Settings.ManaShortText) then
+                mana = math.floor(status.curMana / status.maxMana * 100)
+                mana = mana .. (mana == 100 and "" or "%")
+            else
                 mana = math.floor(status.curMana / 1000) .. "K"
             end
             ComergyEnergyText:SetText(mana)
         end
-        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
+        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
             combinedText = status.curChi .. " " .. status.chiSymbol
             ComergyChiText:SetText(combinedText)
             ComergyChiText:Show()
@@ -863,7 +854,7 @@ function TextStyleChanged()
         else
             ComergyEnergyText:Hide()
         end
-        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) then
+        if ((Comergy_Settings.ChiText) and (status.chiEnabled)) or ((Comergy_Settings.RuneText) and (status.runeEnabled)) then
             ComergyChiText:Show()
         else
             ComergyChiText:Hide()
@@ -874,6 +865,10 @@ function TextStyleChanged()
     ComergyEnergyText:SetWidth(ComergyEnergyText:GetStringWidth() + 5)
     ComergyChiText:SetText("0")
     ComergyChiText:SetWidth(ComergyChiText:GetStringWidth() + 5)
+
+    if(status.manaEnabled and not Comergy_Settings.TextCenter and not Comergy_Settings.ManaShortText) then
+        ComergyEnergyText:SetFont(getglobal(ComergyTextFonts[Comergy_Settings.TextFont][2]):GetFont(), Comergy_Settings.TextHeight * 0.85)
+    end
 end
 
 function ToggleOptions()
@@ -1021,8 +1016,8 @@ function PopulateDefaultSettings()
         SoundRune3 = false,  --Frost
         SoundRune4 = false,  --Death
 
-        RuneColor1 = { 1, 0, 0 },  --Blood
-        RuneColor2 = { 0, 1, 0 },  --Unholy
+        RuneColor1 = { .8, .8, 1, 1 },  --Blood
+        RuneColor2 = { 1, 0, 0, 0.75 },  --Unholy
         RuneColor3 = { 0, 0.5, 1 },  --Frost
         RuneColor4 = { 0.8, 0.93, 1},  --Death
 
@@ -1222,9 +1217,7 @@ function ChiStatus()
     if (class == MONK) then
         chiType = SPELL_POWER_CHI
     elseif (class == PALADIN) then
-        chiType = SPELL_POWER_HOLY_POWER
-    elseif (class == PRIEST) then
-        chiType = GetSpecialization() == 3 and SPELL_POWER_INSANITY
+        chiType = GetSpecialization() == 3 and SPELL_POWER_HOLY_POWER
     elseif (class == WARLOCK) then
         chiType = SPELL_POWER_SOUL_SHARDS
     elseif (class == MAGE) then
@@ -1507,23 +1500,24 @@ function SetMaxChi()
     end
 end
 
-function ColorRune()
+function ColorRune(gradientDuration)
     if (not status.runeEnabled) then
         return
     end
     for i = 1, 6 do
+        local runeStart, runeDuration, isReady = GetRuneCooldown(i)
         cmg_ResetObject(chiBars[i], { chiBars[i].curValue[1], chiBars[i].curValue[2], chiBars[i].curValue[3], chiBars[i].curValue[4] + 0.01 })
-        local runeType = 4
-        local color = Comergy_Settings["RuneColor"..runeType]
-        for j = 1, 3 do
-            cmg_GradientObject(chiBars[i], j + 1, INSTANT_DURATION, color[j])
+        local color = Comergy_Settings["RuneColor"..(isReady and 1 or 2)] --RuneColor1 is ready color
+        for j = 1, 4 do
+            cmg_GradientObject(chiBars[i], j==4 and 1 or j+1, gradientDuration or INSTANT_DURATION, color[j])
         end
     end
-    RuneChanged()
+    --RuneChanged()
 end
 
 -- Blizz codes rune as Blood, Unholy, Frost, but displays them in game as Blood, Frost, Unholy
 function ConvertRune(a)
+    if true then return a end
     local b
     if (a == 3 or a == 4) then
         b = a + 2
@@ -1796,6 +1790,7 @@ end
 -- handles switching specs at a trainer
 function EventHandlers.PLAYER_SPECIALIZATION_CHANGED(event, unit)
     ComergyChangeSettingsAccordingToSpec()
+    PowerTypeChanged()
     ComergyOnConfigChange()
     ComergyRestorePosition()
     ChiStatus()
@@ -1833,7 +1828,7 @@ function EventHandlers.UNIT_HEALTH()
 end
 
 function EventHandlers.RUNE_TYPE_UPDATE(i)
-    ColorRune()
+    RuneChanged()
 end
 
 function EventHandlers.RUNE_POWER_UPDATE(i)
@@ -1842,7 +1837,7 @@ end
 
 -- 163ui
 function ComergyChangeSettingsAccordingToSpec()
-    status.talent = GetSpecialization()
+    status.talent = 1 --GetSpecialization() --No need to seperate to profiles
 
     Comergy_Config = Comergy_Config or {}
 
@@ -1972,7 +1967,7 @@ function OnFrameUpdate(elapsed)
 
         if (status.runeEnabled) then
             for i = 1, 6 do
-                if ((status.runeFlashing[i] > 0) and (chiBars[i].curValue[1] == Comergy_Settings.RuneBGAlpha
+                if ((status.runeFlashing[i] > 0) and (chiBars[i].curValue[1] == 0.5 --Comergy_Settings.RuneBGAlpha
                         or chiBars[i].curValue[1] == 0.3)) then
                     status.runeFlashing[i] = status.runeFlashing[i] - 1
                     if (status.runeFlashing[i] > 0) then

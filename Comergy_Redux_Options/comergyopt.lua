@@ -76,14 +76,14 @@ function CreateSlider(type, name, min, max, parent, x, y, width, valueStep, titl
             extension = "_RUNIC"
         elseif (playerClass == WARRIOR) then
             extension = "_RAGE"
+        elseif (playerClass == PRIEST) then
+            extension = "_INSANITY"
         else
             extension = "_ENERGY"
         end
     elseif (type == "combo") then
         if (playerClass == MONK) then
             extension = "_CHI"
-        elseif (playerClass == PRIEST) then
-            extension = "_INSANITY"
         elseif (playerClass == PALADIN) then
             extension = "_HOLY_POWER"
         elseif (playerClass == DEATHKNIGHT) then
@@ -138,14 +138,14 @@ function CreateCheckButton(name, parent, x, y, type)
             extension = "_RUNIC"
         elseif (playerClass == WARRIOR) then
             extension = "_RAGE"
+        elseif (playerClass == PRIEST) then
+            extension = "_INSANITY"
         else
             extension = "_ENERGY"
         end
     elseif (type == "combo") then
         if (playerClass == MONK) then
             extension = "_CHI"
-        elseif (playerClass == PRIEST) then
-            extension = "_INSANITY"
         elseif (playerClass == PALADIN) then
             extension = "_HOLY_POWER"
         elseif (playerClass == DEATHKNIGHT) then
@@ -216,14 +216,14 @@ function CreateColorButton(name, parent, x, y, type, editBox)
             extension = "_RUNIC"
         elseif (playerClass == WARRIOR) then
             extension = "_RAGE"
+        elseif (playerClass == PRIEST) then
+            extension = "_INSANITY"
         else
             extension = "_ENERGY"
         end
     elseif (type == "combo") then
         if (playerClass == MONK) then
             extension = "_CHI"
-        elseif (playerClass == PRIEST) then
-            extension = "_INSANITY"
         elseif (playerClass == PALADIN) then
             extension = "_HOLY_POWER"
         elseif (playerClass == DEATHKNIGHT) then
@@ -523,7 +523,7 @@ function ComergyOptOnLoad()
 
     -- try and fix this -- what's broken about it?
     CreateSlider("combo", "RuneHeight",    0, 50,     ComergyOptRuneFrame,    25,  -166, 110, 1,    COMERGY_COMBO_HEIGHT,   false)
-    CreateSlider("combo", "RuneBGAlpha",   0, 1,      ComergyOptRuneFrame,    160, -166, 110, 0.02, COMERGY_COMBO_BG_ALPHA, false)
+    --CreateSlider("combo", "RuneBGAlpha",   0, 1,      ComergyOptRuneFrame,    160, -166, 110, 0.02, COMERGY_COMBO_BG_ALPHA, false)
 
 
     CreateCheckButton("Enabled", ComergyOptGeneralFrame, 13, -10)
@@ -591,10 +591,10 @@ function ComergyOptOnLoad()
     --CreateCheckButton("SoundRune1", ComergyOptRuneFrame, 120, -30)
     --CreateCheckButton("SoundRune2", ComergyOptRuneFrame, 120, -60)
     --CreateCheckButton("SoundRune3", ComergyOptRuneFrame, 120, -90)
-    CreateCheckButton("SoundRune4", ComergyOptRuneFrame, 120, -120)
+    --CreateCheckButton("SoundRune4", ComergyOptRuneFrame, 120, -120)
 
     --try and fix this
-    --CreateCheckButton("RuneText", ComergyOptRuneFrame, 20, -196, "combo")
+    CreateCheckButton("RuneText", ComergyOptRuneFrame, 20, -196, "combo")
     CreateCheckButton("RuneFlash", ComergyOptRuneFrame, 130, -196, "combo")
 
     CreateEditBox("EnergyThreshold1", ComergyOptEnergyFrame, 30, -53)
@@ -642,10 +642,10 @@ function ComergyOptOnLoad()
     CreateColorButton("ChiColor4", ComergyOptComboFrame, 150, -150, "", true)
     CreateColorButton("ChiColor5", ComergyOptComboFrame, 150, -180, "", true)
 
-    --CreateColorButton("RuneColor1", ComergyOptRuneFrame, 170, -30, "", true)
-    --CreateColorButton("RuneColor2", ComergyOptRuneFrame, 170, -60, "", true)
+    CreateColorButton("RuneColor1", ComergyOptRuneFrame, 170, -30, "", true)
+    CreateColorButton("RuneColor2", ComergyOptRuneFrame, 170, -60, "", true)
     --CreateColorButton("RuneColor3", ComergyOptRuneFrame, 170, -90, "", true)
-    CreateColorButton("RuneColor4", ComergyOptRuneFrame, 170, -120, "", true)
+    --CreateColorButton("RuneColor4", ComergyOptRuneFrame, 170, -120, "", true)
 
     CreateColorButton("RuneBGColorAlpha", ComergyOptRuneFrame, 190, -215, "", true)
 
@@ -701,8 +701,7 @@ function ComergyOptOnLoad()
         ComergyOptTab3:Show()
         ComergyOptTab4:SetText(COMERGY_INSANITY)
         ComergyOptTab4:Show()
-        --ComergyOptTab5:Hide()
-        comboText = COMERGY_INSANITY
+        ComergyOptTab5:Hide()
     elseif (playerClass == ROGUE) then
         ComergyOptTab3:SetText(COMERGY_ENERGY)
         ComergyOptTab3:Show()
@@ -721,8 +720,9 @@ function ComergyOptOnLoad()
         ComergyOptTab3:Show()
         ComergyOptTab4:SetText(COMERGY_SOUL_SHARD)
         ComergyOptTab4:Show()
+        ComergyOptTab5:Hide()
         comboText = COMERGY_SOUL_SHARD
-        isFiveTabs = true
+        --isFiveTabs = true
     elseif (playerClass == WARRIOR) then
         ComergyOptTab3:SetText(COMERGY_RAGE)
         ComergyOptTab3:Show()
@@ -743,10 +743,10 @@ function ComergyOptOnLoad()
     ComergyOptComboText4:SetText(comboText .. " 4")
     ComergyOptComboText5:SetText(comboText .. " 5")
 
-    ComergyOptRuneText1:SetText(COMERGY_BLOOD .. " " .. COMERGY_RUNE) ComergyOptRuneText1:Hide()
-    ComergyOptRuneText2:SetText(COMERGY_UNHOLY .. " " .. COMERGY_RUNE) ComergyOptRuneText2:Hide()
+    ComergyOptRuneText1:SetText(COMERGY_BLOOD .. " " .. COMERGY_RUNE)
+    ComergyOptRuneText2:SetText(COMERGY_UNHOLY .. " " .. COMERGY_RUNE)
     ComergyOptRuneText3:SetText(COMERGY_FROST .. " " .. COMERGY_RUNE) ComergyOptRuneText3:Hide()
-    ComergyOptRuneText4:SetText(COMERGY_DEATH .. " " .. COMERGY_RUNE)
+    ComergyOptRuneText4:SetText(COMERGY_DEATH .. " " .. COMERGY_RUNE) ComergyOptRuneText4:Hide()
 
     ComergyOptEnergyTextSound:SetText(COMERGY_TEXT_SOUND)
     ComergyOptEnergyTextSplit:SetText(COMERGY_TEXT_SPLIT)
@@ -759,7 +759,7 @@ function ComergyOptOnLoad()
     ComergyOptManaTextColor:SetText(COMERGY_TEXT_COLOR)
     ComergyOptComboTextSound:SetText(COMERGY_TEXT_SOUND)
     ComergyOptComboTextColor:SetText(COMERGY_TEXT_COLOR)
-    ComergyOptRuneTextSound:SetText(COMERGY_TEXT_SOUND)
+    ComergyOptRuneTextSound:SetText(COMERGY_TEXT_SOUND) ComergyOptRuneTextSound:Hide()
     ComergyOptRuneTextColor:SetText(COMERGY_TEXT_COLOR)
     ComergyOptBarTextTargetHealth:SetText(COMERGY_TARGET_HEALTH_WARNING)
     ComergyOptBarTextTargetHealth:SetPoint("TOP", ComergyOptSliderTargetHeight, "BOTTOM", 0, -8)
@@ -774,7 +774,7 @@ function ComergyOptOnLoad()
     ComergyTextureDropdownMiddle:SetWidth(60)
     tdd:SetPoint("TOPLEFT", 190, -110)
 
-    ComergyTextureDropdownButton:SetScript("OnClick", function()
+    ComergyTextureDropdownButton:SetScript("OnClick", function(self)
         if (DropDownList1:IsShown()) then
             DropDownList1:Hide()
         else
@@ -784,9 +784,7 @@ function ComergyOptOnLoad()
                     { text = ComergyBarTextures[i][1], func = function() ChooseTexture(i) end, checked = false })
             end
             texturesList[Comergy_Settings.BarTexture].checked = true
-            EasyMenu(texturesList, ComergyTextureDropdown, ComergyTextureDropdown, 0 , 0, nil)
-            ToggleDropDownMenu(1, nil, ComergyTextureDropdown, ComergyTextureDropdown, 0, 0, texturesList)
-            DropDownList1:Show()
+            EasyMenu(texturesList, ComergyTextureDropdown, self, 0 , 0, nil)
         end
     end)
     ComergyOptBarTextTexture:SetJustifyH("RIGHT")
@@ -811,8 +809,6 @@ function ComergyOptOnLoad()
             end
             fontsList[Comergy_Settings.TextFont].checked = true
             EasyMenu(fontsList, ComergyTextDropdown, ComergyTextDropdown, 0 , 0, nil)
-            ToggleDropDownMenu(1, nil, ComergyTextDropdown, ComergyTextDropdown, 0, 0, fontsList)
-            DropDownList1:Show()
         end
     end)
     ComergyOptGeneralTextText:SetJustifyH("RIGHT")
@@ -876,8 +872,10 @@ function ComergyOptTabOnClick(id)
         end
     elseif (id == 4) then
         if (playerClass == DRUID or playerClass == MONK or playerClass == PALADIN or
-            playerClass == PRIEST or playerClass == ROGUE or playerClass == WARLOCK) then
+            playerClass == ROGUE or playerClass == WARLOCK) then
             ComergyOptComboFrame:Show()
+        elseif (playerClass == PRIEST) then
+            ComergyOptEnergyFrame:Show()
         elseif (playerClass == DEATHKNIGHT) then
             ComergyOptRuneFrame:Show()
         end
