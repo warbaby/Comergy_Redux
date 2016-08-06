@@ -14,17 +14,19 @@ local clickables = {}
 local i, j
 
 local playerClass
-local DEATHKNIGHT = 1
-local DRUID = 2
-local HUNTER = 3
-local MAGE = 4
-local MONK = 5
-local PALADIN = 6
-local PRIEST = 7
-local ROGUE = 8
-local SHAMAN = 9
-local WARLOCK = 10
-local WARRIOR = 11
+-- class constants GetClassInfo()
+local WARRIOR       = 1
+local PALADIN       = 2
+local HUNTER        = 3
+local ROGUE         = 4
+local PRIEST        = 5
+local DEATHKNIGHT   = 6
+local SHAMAN        = 7
+local MAGE          = 8
+local WARLOCK       = 9
+local MONK          = 10
+local DRUID         = 11
+local DEMONHUNTER   = 12
 
 local comboText
 local isFiveTabs = false
@@ -32,7 +34,7 @@ local isFiveTabs = false
 local SliderOnValueChanged, CheckButtonOnClick
 local CreateSlider, CreateCheckButton, CreateEditBox, QuitColor, QuitAlpha, CreateColorButton
 local DisableWidget, EnableWidget, SetCheckBox, SetClickables, ChooseTexture, ChooseFont
-local Check, Slide, Color, Text, ClearEditBoxFocus, StringToColor, PlayerClass
+local Check, Slide, Color, Text, ClearEditBoxFocus, StringToColor
 
 function StringToColor(str)
     local color = { }
@@ -446,35 +448,6 @@ function Text()
     end
 end
 
-function PlayerClass()
-
-    local class = select(2, UnitClass("player"))
-
-    if (class == "DEATHKNIGHT") then
-        playerClass = DEATHKNIGHT
-    elseif (class == "DRUID") then
-        playerClass = DRUID
-    elseif (class == "HUNTER") then
-        playerClass = HUNTER
-    elseif (class == "MAGE") then
-        playerClass = MAGE
-    elseif (class == "MONK") then
-        playerClass = MONK
-    elseif (class == "PALADIN") then
-        playerClass = PALADIN
-    elseif (class == "PRIEST") then
-        playerClass = PRIEST
-    elseif (class == "ROGUE") then
-        playerClass = ROGUE
-    elseif (class == "SHAMAN") then
-        playerClass = SHAMAN
-    elseif (class == "WARLOCK") then
-        playerClass = WARLOCK
-    elseif (class == "WARRIOR") then
-        playerClass = WARRIOR
-    end
-end
-
 function ComergyOptReadSettings()
     Check()
     Slide()
@@ -496,7 +469,7 @@ end
 function ComergyOptOnLoad()
     -- Options Frame needs to be UISpecialFrame
 
-    PlayerClass()
+    playerClass = select(3, UnitClass("player"))
 
     tinsert(UISpecialFrames,"ComergyOptFrame")
 
@@ -697,7 +670,7 @@ function ComergyOptOnLoad()
         ComergyOptTab5:Hide()
         comboText = COMERGY_HOLY_POWER
     elseif (playerClass == PRIEST) then
-        ComergyOptTab3:SetText(COMERGY_ENERGY)
+        ComergyOptTab3:SetText(COMERGY_MANA)
         ComergyOptTab3:Show()
         ComergyOptTab4:SetText(COMERGY_INSANITY)
         ComergyOptTab4:Show()
@@ -858,7 +831,7 @@ function ComergyOptTabOnClick(id)
     ComergyOptManaFrame:Hide()
     ComergyOptRogueFrame:Hide()
     ComergyOptRuneFrame:Hide()
-    PlayerClass()
+
     if (id == 1) then
         ComergyOptGeneralFrame:Show()
     elseif (id == 2) then

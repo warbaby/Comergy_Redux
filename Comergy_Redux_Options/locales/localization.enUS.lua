@@ -15,9 +15,9 @@ if (true) then
 
     COMERGY_ROGUE = GetClassInfo(4)
 
-    COMERGY_BLOOD = "Blood"
+    COMERGY_BLOOD = "Ready"
     COMERGY_FROST = "Frost"
-    COMERGY_UNHOLY = "Unholy"
+    COMERGY_UNHOLY = "Cooldown"
     COMERGY_DEATH = "Death"
 
     COMERGY_LOW = LOW
@@ -27,9 +27,9 @@ if (true) then
     
     COMERGY_TARGET_HEALTH_WARNING = "note: may require reload to take effect"
 
-    COMERGY_TEXT_SOUND = "Sound"
+    COMERGY_TEXT_SOUND = SOUND
     COMERGY_TEXT_SPLIT = "Split"
-    COMERGY_TEXT_COLOR = "Color"
+    COMERGY_TEXT_COLOR = COLOR
     COMERGY_TEXT_FLASH = "When Vendetta, Adrenaline Rush or Shadow Dance:"
     COMERGY_TEXT_ANTICIPATION = "When using lvl 90 talent Anticipation:"
 
@@ -64,6 +64,10 @@ if (true) then
         ["EnergyHeight"] = "Runic bar thickness",
     }
 
+    COMERGY_SLIDERINFO_RUNIC = {
+        ["EnergyHeight"] = "Insanity bar thickness",
+    }
+
     COMERGY_SLIDERINFO_MANA = {
         ["ManaHeight"] = "Mana bar thickness",
     }
@@ -84,12 +88,6 @@ if (true) then
         ["ChiHeight"] = "Holy power bar thickness",
         ["ChiBGAlpha"] = "Holy power BG alpha",
         ["ChiDiff"] = "Fancy holy power bars",
-    }
-
-    COMERGY_SLIDERINFO_INSANITY = {
-        ["ChiHeight"] = "Orb bar thickness",
-        ["ChiBGAlpha"] = "Orb BG alpha",
-        ["ChiDiff"] = "Fancy orb bars",
     }
 
     COMERGY_SLIDERINFO_RUNE = {
@@ -139,6 +137,8 @@ if (true) then
         ["EnergyBGFlash"] = "Flash BG when \"Not enough rage\"",
     }
 
+    COMERGY_CHECKOPTINFO_INSANITY = COMERGY_CHECKOPTINFO_ENERGY
+
     COMERGY_CHECKOPTINFO_RUNIC = {
         ["EnergyText"] = "Runic text",
         ["UnifiedEnergyColor"] = "Unified runic color",
@@ -166,12 +166,6 @@ if (true) then
         ["ChiFlash"] = "Flash chi points when full chi",
     }
 
-    COMERGY_CHECKOPTINFO_INSANITY = {
-        ["ChiText"] = "Shadow orb text",
-        ["UnifiedChiColor"] = "Unified shadow orb color",
-        ["ChiFlash"] = "Flash shadow orbs when full shadow orbs",
-    }
-
     COMERGY_CHECKOPTINFO_HOLY_POWER = {
         ["ChiText"] = "Holy power text",
         ["UnifiedChiColor"] = "Unified holy power color",
@@ -183,7 +177,6 @@ if (true) then
         ["UnifiedRuneColor"] = "Unified rune color",
         ["RuneFlash"] = "Flash runes",
     }
-
 
     COMERGY_COLORPICKERINFO = {
         ["TextColor"] = "Text color",
@@ -198,6 +191,8 @@ if (true) then
     COMERGY_COLORPICKERINFO_FOCUS = {
         ["EnergyBGColorAlpha"] = "Focus BG",
     }
+    
+    COMERGY_COLORPICKERINFO_INSANITY = COMERGY_COLORPICKERINFO_ENERGY
 
     COMERGY_COLORPICKERINFO_RAGE = {
         ["EnergyBGColorAlpha"] = "Rage BG",
